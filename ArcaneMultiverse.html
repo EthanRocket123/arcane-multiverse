@@ -1,0 +1,2971 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcane Multiverse</title>
+    <style>
+        /* (Entire CSS from your original file kept unchanged) */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a0033 0%, #2d0052 50%, #1a0033 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        .login-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+            background: linear-gradient(135deg, #0f001a 0%, #1a0033 50%, #0f001a 100%);
+        }
+
+        .login-container {
+            background: rgba(20, 10, 40, 0.8);
+            padding: 60px 40px;
+            border-radius: 20px;
+            border: 2px solid #7c3aed;
+            max-width: 500px;
+            box-shadow: 0 0 50px rgba(124, 58, 237, 0.3);
+        }
+
+        .login-container h1 {
+            font-size: 48px;
+            color: #fff;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(124, 58, 237, 0.8);
+            letter-spacing: 2px;
+        }
+
+        .login-container .tagline {
+            color: #b8a8d8;
+            font-size: 14px;
+            margin-bottom: 40px;
+            font-style: italic;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .guest-btn {
+            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+            color: white;
+        }
+
+        .guest-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(124, 58, 237, 0.4);
+        }
+
+        .google-btn {
+            background: white;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .google-btn:hover {
+            background: #f3f4f6;
+        }
+
+        .note {
+            color: #999;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+
+        .main-app {
+            display: none;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a0033 0%, #2d0052 50%, #1a0033 100%);
+        }
+
+        .main-app.active {
+            display: block;
+        }
+
+        .header {
+            background: rgba(20, 10, 40, 0.9);
+            border-bottom: 2px solid #7c3aed;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #fff;
+            font-size: 28px;
+            text-shadow: 0 0 15px rgba(124, 58, 237, 0.8);
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #7c3aed;
+            object-fit: cover;
+            display: none;
+        }
+
+        .logout-btn {
+            background: #dc2626;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: #991b1b;
+            transform: scale(1.05);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0;
+            background: rgba(20, 10, 40, 0.7);
+            border-bottom: 2px solid #7c3aed;
+            padding: 0;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            background: transparent;
+            color: #b8a8d8;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: #fff;
+            background: rgba(124, 58, 237, 0.2);
+            border-bottom-color: #7c3aed;
+        }
+
+        .tab-btn:hover {
+            background: rgba(124, 58, 237, 0.1);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .hero-card {
+            background: rgba(60, 20, 100, 0.6);
+            border: 2px solid #7c3aed;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .hero-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(124, 58, 237, 0.3);
+        }
+
+        .hero-card h3 {
+            color: #fff;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+        .hero-card p {
+            color: #b8a8d8;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+
+        .hero-image {
+            width: 100%;
+            height: 200px;
+            background: rgba(20, 10, 40, 0.5);
+            border-radius: 5px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #7c3aed;
+            overflow: hidden;
+        }
+
+        .hero-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .hero-moves {
+            background: rgba(20, 10, 40, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 12px;
+        }
+
+        .hero-moves strong {
+            color: #a855f7;
+        }
+
+        .move-item-display {
+            background: rgba(60, 20, 100, 0.5);
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 3px;
+            color: #b8a8d8;
+        }
+
+        /* Restore original hero-actions button style (stretching buttons) */
+        .hero-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .hero-actions button {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .edit-btn {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .edit-btn:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
+        }
+
+        .delete-btn {
+            background: #dc2626;
+            color: white;
+        }
+
+        .delete-btn:hover {
+            background: #991b1b;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(220, 38, 38, 0.2);
+        }
+
+        .create-hero-section,
+        .settings-section {
+            background: rgba(60, 20, 100, 0.6);
+            border: 2px solid #7c3aed;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin: 15px 0;
+        }
+
+        .form-group label {
+            display: block;
+            color: #b8a8d8;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .form-group input[type="text"],
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            background: rgba(20, 10, 40, 0.7);
+            border: 1px solid #7c3aed;
+            border-radius: 5px;
+            color: #e0e0e0;
+            font-family: inherit;
+            margin-bottom: 8px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #a855f7;
+            box-shadow: 0 0 10px rgba(124, 58, 237, 0.3);
+        }
+
+        .nested-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 3px solid #a855f7;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 0 5px 5px 0;
+        }
+
+        .nested-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .nested-header h5 {
+            color: #a855f7;
+        }
+
+        .remove-btn {
+            background: #dc2626;
+            color: white;
+            padding: 4px 8px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        .portrait-section {
+            background: rgba(20, 10, 40, 0.7);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .portrait-preview {
+            width: 100%;
+            height: 150px;
+            background: rgba(20, 10, 40, 0.5);
+            border: 1px solid #7c3aed;
+            border-radius: 5px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .portrait-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .file-button-group {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .file-btn {
+            flex: 1;
+            padding: 10px;
+            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .file-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(124, 58, 237, 0.3);
+        }
+
+        .url-input-group {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .url-input-group input {
+            flex: 1;
+        }
+
+        .url-input-group button {
+            padding: 10px 20px;
+            background: #7c3aed;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .url-input-group button:hover {
+            background: #a855f7;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .add-btn,
+        .create-btn,
+        .arena-fight-btn {
+            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin-top: 5px;
+        }
+
+        .add-btn-small {
+            background: #3b82f6;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .add-btn:hover,
+        .create-btn:hover,
+        .arena-fight-btn:hover,
+        .add-btn-small:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(124, 58, 237, 0.3);
+        }
+
+        .list-container {
+            background: rgba(20, 10, 40, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .item-card {
+            background: rgba(60, 20, 100, 0.5);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 3px;
+            color: #b8a8d8;
+            border: 1px solid #7c3aed;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .item-header h4 {
+            color: #fff;
+        }
+
+        .inline-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #fff;
+        }
+
+        .inline-checkbox input {
+            width: auto;
+            transform: scale(1.2);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: block;
+        }
+
+        .modal-content {
+            background: rgba(20, 10, 40, 0.95);
+            margin: 5% auto;
+            padding: 30px;
+            border: 2px solid #7c3aed;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: #fff;
+        }
+
+        .close-modal {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .hero-selector {
+            background: rgba(60, 20, 100, 0.6);
+            border: 2px solid #7c3aed;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .hero-selector h3 {
+            color: #fff;
+            margin-bottom: 15px;
+        }
+
+        .hero-selector-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .hero-option {
+            background: rgba(20, 10, 40, 0.7);
+            border: 2px solid #7c3aed;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #b8a8d8;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .hero-option:hover {
+            background: rgba(124, 58, 237, 0.2);
+            transform: scale(1.05);
+        }
+
+        /* --- UPDATED BATTLE UI --- */
+        .battle-arena-layout {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            margin: 20px 0;
+        }
+
+        .stat-box {
+            background: rgba(60, 20, 100, 0.6);
+            border: 2px solid #7c3aed;
+            border-radius: 10px;
+            padding: 15px;
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .stat-box.enemy-top {
+            flex-direction: row-reverse;
+            border-color: #dc2626;
+            background: rgba(100, 20, 20, 0.6);
+        }
+
+        .stat-box.player-bottom {
+            flex-direction: row;
+            border-color: #3b82f6;
+            background: rgba(20, 40, 100, 0.6);
+        }
+
+        .arena-portrait {
+            width: 120px;
+            height: 120px;
+            border-radius: 10px;
+            object-fit: contain;
+            border: 3px solid;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .enemy-top .arena-portrait {
+            border-color: #dc2626;
+        }
+
+        .player-bottom .arena-portrait {
+            border-color: #3b82f6;
+        }
+
+        .stats-info {
+            flex: 1;
+        }
+
+        .stat-box h4 {
+            margin-bottom: 5px;
+        }
+
+        .enemy-top h4 {
+            color: #f87171;
+            text-align: right;
+        }
+
+        .player-bottom h4 {
+            color: #60a5fa;
+        }
+
+        .stat-name {
+            color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+
+        .enemy-top .stat-name {
+            text-align: right;
+        }
+
+        .stat-value {
+            color: #b8a8d8;
+            font-size: 14px;
+        }
+
+        .enemy-top .stat-value {
+            text-align: right;
+        }
+
+        .health-bar {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid #7c3aed;
+            height: 20px;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 5px 0;
+            width: 100%;
+        }
+
+        .health-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .player-bottom .health-fill {
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+        }
+
+        .enemy-top .health-fill {
+            background: linear-gradient(90deg, #dc2626, #f87171);
+            float: right;
+        }
+
+        .turn-indicator {
+            background: rgba(60, 20, 100, 0.6);
+            border: 2px solid #a855f7;
+            border-radius: 20px;
+            padding: 10px 40px;
+            text-align: center;
+            color: #fff;
+            font-weight: bold;
+            font-size: 18px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .move-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .move-button {
+            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .move-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(124, 58, 237, 0.3);
+        }
+
+        .battle-log {
+            background: rgba(20, 10, 40, 0.8);
+            border: 2px solid #7c3aed;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .battle-log.active {
+            display: block;
+        }
+
+        .battle-log h3 {
+            color: #fff;
+            margin-bottom: 15px;
+        }
+
+        .log-entry {
+            background: rgba(60, 20, 100, 0.5);
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 5px;
+            color: #b8a8d8;
+            font-size: 14px;
+            border-left: 3px solid #7c3aed;
+        }
+
+        .log-entry.player {
+            border-left-color: #3b82f6;
+            color: #60a5fa;
+        }
+
+        .log-entry.enemy {
+            border-left-color: #dc2626;
+            color: #f87171;
+        }
+
+        .log-entry.info {
+            border-left-color: #a855f7;
+            color: #d8b4fe;
+        }
+
+        .status-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 6px;
+            min-height: 22px;
+        }
+
+        .status-tag {
+            background: rgba(168, 85, 247, 0.25);
+            border: 1px solid #a855f7;
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 11px;
+            color: #d8b4fe;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .status-tag.debuff {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: #ef4444;
+            color: #fca5a5;
+        }
+
+        .status-tag.buff {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: #22c55e;
+            color: #86efac;
+        }
+
+        .ai-thinking {
+            display: inline-block;
+            color: #a855f7;
+            font-size: 13px;
+            font-style: italic;
+            padding: 4px 10px;
+            background: rgba(168, 85, 247, 0.1);
+            border-radius: 6px;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            margin: 4px 0;
+        }
+
+        #battleAnimationOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            pointer-events: all;
+            user-select: none;
+        }
+
+        #battleAnimationContainer video,
+        #battleAnimationContainer img {
+            max-width: 90vw;
+            max-height: 90vh;
+            border-radius: 10px;
+            border: 3px solid #a855f7;
+            box-shadow: 0 0 30px rgba(168, 85, 247, 0.6);
+        }
+
+        /* small play button overlay for manual start fallback */
+        .anim-play-overlay {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid #7c3aed;
+            color: white;
+            padding: 12px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            z-index: 2010;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Full original HTML structure (kept unchanged) -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-container">
+            <h1>ARCANE<br>MULTIVERSE</h1>
+            <p class="tagline">Step into the nexus of infinite realities.</p>
+
+            <div id="initialButtons">
+                <button class="login-btn guest-btn" onclick="showAuthScreen('create')">CREATE ACCOUNT</button>
+                <button class="login-btn guest-btn" onclick="showAuthScreen('login')">LOGIN</button>
+                <button class="login-btn guest-btn" onclick="guestLogin()">SIGN IN AS GUEST</button>
+                <button class="login-btn google-btn" disabled title="In Progress"><span>&#128309;</span> Sign In with Google (IN PROGRESS)</button>
+                <button class="login-btn" style="background: rgba(60,20,100,0.6); border: 1px solid #7c3aed; color: #b8a8d8; margin-top: 5px;" onclick="toggleAccountViewer()">&#128100; View All Accounts</button>
+            </div>
+
+            <div id="accountViewerPanel" style="display:none; margin-top: 20px; background: rgba(20,10,40,0.9); border: 1px solid #7c3aed; border-radius: 10px; padding: 15px; text-align: left;">
+                <h3 style="color:#a855f7; margin-bottom: 12px; font-size: 16px;">&#128101; Registered Accounts</h3>
+                <div id="accountViewerList"></div>
+                <button style="margin-top: 12px; background: transparent; border: 1px solid #7c3aed; color: #b8a8d8; padding: 6px 14px; border-radius: 5px; cursor: pointer; font-size: 12px;" onclick="toggleAccountViewer()">Close</button>
+            </div>
+
+            <div id="authFormContainer" style="display: none;">
+                <h2 id="authTitle" style="color: white; margin-bottom: 15px; font-size: 24px;">Login</h2>
+                <input type="text" id="loginUsername" placeholder="Username" style="width:100%;padding:12px;margin:8px 0;border-radius:8px;border:1px solid #7c3aed;background:rgba(20,10,40,.7);color:white;">
+                <input type="password" id="loginPassword" placeholder="Password" style="width:100%;padding:12px;margin:8px 0;border-radius:8px;border:1px solid #7c3aed;background:rgba(20,10,40,.7);color:white;">
+                <button id="authSubmitBtn" class="login-btn guest-btn" onclick="executeAuth()">SUBMIT</button>
+                <button class="login-btn" style="background: transparent; border: 1px solid #7c3aed; color: #b8a8d8; margin-top: 5px;" onclick="hideAuthScreen()">BACK</button>
+            </div>
+            <p class="note">Accounts save on this browser. Guest accounts remain temporary.</p>
+        </div>
+    </div>
+
+    <div id="mainApp" class="main-app">
+        <div class="header">
+            <h1>&#9889; ARCANE MULTIVERSE</h1>
+            <div class="header-controls">
+                <img id="headerAvatar" class="header-avatar" src="" alt="Profile">
+                <button class="logout-btn" onclick="logout()">LOGOUT</button>
+            </div>
+        </div>
+
+        <div class="tabs" style="overflow-x:auto;">
+            <button class="tab-btn active" onclick="switchTab('heroes', this)">Hall of Heroes</button>
+            <button class="tab-btn" onclick="switchTab('createHero', this)">Create Hero</button>
+            <button class="tab-btn" onclick="switchTab('arena', this)">Arena</button>
+            <button class="tab-btn" onclick="switchTab('friends', this)">&#128101; Friends</button>
+            <button class="tab-btn" onclick="switchTab('settings', this)">Settings</button>
+        </div>
+
+        <div id="heroes" class="tab-content active">
+            <h2>&#9876;&#65039; Hall of Heroes</h2>
+            <div id="heroesGrid" class="hero-grid"></div>
+        </div>
+
+        <div id="createHero" class="tab-content">
+            <h2>&#10024; Forge a Legend</h2>
+            <div class="create-hero-section">
+                <div class="form-group">
+                    <label>Hero Name</label><input type="text" id="heroName" placeholder="Enter hero name">
+                </div>
+                <div class="form-group">
+                    <label>Archetype</label><input type="text" id="heroArchetype" placeholder="e.g., Warrior, Mage, Rogue">
+                </div>
+                <div class="form-group">
+                    <label>Description</label><textarea id="heroDescription" placeholder="Describe your hero..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>&#128248; Portrait (PNG/JPEG)</label>
+                    <div class="portrait-section">
+                        <div class="portrait-preview" id="portraitPreview">No image selected</div>
+                        <div class="file-button-group">
+                            <button class="file-btn" onclick="document.getElementById('portraitFileInput').click()">&#128193; From PC</button>
+                            <button class="file-btn" onclick="showPortraitUrlInput()">&#127760; From Internet</button>
+                        </div>
+                        <div class="portraitUrlInputGroup url-input-group" id="portraitUrlInputGroup" style="display:none;">
+                            <input type="text" id="portraitUrl" placeholder="Paste PNG/JPEG URL here">
+                            <button onclick="loadPortraitFromUrl()">Load</button>
+                        </div>
+                        <input type="file" id="portraitFileInput" accept=".png,.jpg,.jpeg" onchange="loadPortraitFromFile(event)">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>&#127917; Battle Intros (Combined)</label>
+                    <div class="list-container" id="combinedIntrosList"></div>
+                    <button class="add-btn" style="background:#8b5cf6;" onclick="renderIntroField(document.getElementById('combinedIntrosList'), 'Combined')">+ Add Battle Intro</button>
+                </div>
+
+                <div class="form-group">
+                    <label>&#9876;&#65039; Moves</label>
+                    <div class="list-container" id="movesList"></div>
+                    <button class="add-btn" onclick="renderMoveField(document.getElementById('movesList'))">+ Add Move</button>
+                    <p style="color:#999; font-size:12px; margin-top:6px;">When adding a move, add any conditions/effects (e.g., "High chance to Freeze the enemy for 2-5 turns"). Each status condition has its own display toggles below.</p>
+                </div>
+
+                <button class="create-btn" style="width:100%; font-size:18px; padding:15px;" onclick="createHero()">Create Hero</button>
+            </div>
+        </div>
+
+        <div id="arena" class="tab-content">
+            <h2>&#127967;&#65039; Arena</h2>
+
+            <!-- Team selection -->
+            <div class="hero-selector" id="teamSelectSection">
+                <h3>Select Your Team <span style="color:#a855f7;font-size:14px;">(pick 1–5 heroes)</span></h3>
+                <div id="teamSelectedInfo" style="color:#86efac;font-size:13px;margin-bottom:10px;min-height:20px;"></div>
+                <div class="hero-selector-grid" id="heroSelectorGrid"></div>
+                <button class="arena-fight-btn" id="startBattleBtn" style="margin-top:15px;width:100%;display:none;" onclick="startTeamBattle()">&#9876;&#65039; Fight!</button>
+            </div>
+
+            <!-- Battle section -->
+            <div id="arenaFightSection" style="display:none;">
+
+                <!-- Enemy team -->
+                <div style="margin-bottom:10px;">
+                    <h4 style="color:#f87171;margin-bottom:8px;">&#128121; Enemy Team</h4>
+                    <div id="enemyTeamDisplay" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
+                </div>
+
+                <div class="turn-indicator" id="turnIndicator">Your Turn</div>
+
+                <!-- Player team -->
+                <div style="margin-top:10px;">
+                    <h4 style="color:#60a5fa;margin-bottom:8px;">&#9876;&#65039; Your Team</h4>
+                    <div id="playerTeamDisplay" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
+                </div>
+
+                <!-- Move buttons — shown for each living player character in order -->
+                <div id="roundMoveSection" style="margin-top:20px;"></div>
+
+                <button class="arena-fight-btn" onclick="selectNewCharacter()" style="width:100%;margin-top:20px;">Select Different Team</button>
+            </div>
+            <div id="battleLog" class="battle-log"></div>
+        </div>
+
+        <div id="friends" class="tab-content">
+            <h2>&#128101; Friends</h2>
+
+            <!-- Add friend -->
+            <div class="settings-section" style="margin-bottom:16px;">
+                <h3 style="margin-bottom:10px;">Add a Friend</h3>
+                <p style="color:#999;font-size:13px;margin-bottom:10px;">Enter the exact username of another account on this browser.</p>
+                <div style="display:flex;gap:8px;">
+                    <input type="text" id="friendUsernameInput" placeholder="Enter username..." style="flex:1;padding:10px;background:rgba(20,10,40,0.7);border:1px solid #7c3aed;border-radius:5px;color:#e0e0e0;font-family:inherit;">
+                    <button class="add-btn" style="margin-top:0;" onclick="addFriend()">Add</button>
+                </div>
+                <div id="friendAddMsg" style="font-size:13px;margin-top:6px;min-height:18px;"></div>
+            </div>
+
+            <!-- Friend requests -->
+            <div class="settings-section" id="friendRequestsSection" style="display:none;margin-bottom:16px;">
+                <h3 style="margin-bottom:10px;">&#128276; Friend Requests</h3>
+                <div id="friendRequestsList"></div>
+            </div>
+
+            <!-- Friends list -->
+            <div class="settings-section">
+                <h3 style="margin-bottom:10px;">My Friends</h3>
+                <div id="friendsList"><p style="color:#999;font-size:13px;">No friends yet.</p></div>
+            </div>
+
+            <!-- Friend profile viewer modal -->
+            <div id="friendProfileModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);z-index:3000;overflow-y:auto;">
+                <div style="background:rgba(20,10,40,0.97);border:2px solid #7c3aed;border-radius:12px;max-width:700px;width:90%;margin:5% auto;padding:30px;position:relative;">
+                    <button onclick="closeFriendProfile()" style="position:absolute;top:12px;right:12px;background:#dc2626;color:white;border:none;padding:6px 14px;border-radius:5px;cursor:pointer;font-weight:bold;">Close</button>
+                    <div id="friendProfileContent"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="settings" class="tab-content">
+            <h2>&#9881;&#65039; Settings</h2>
+            <div class="settings-section">
+                <h3>User Profile</h3>
+                <p id="loggedInStatus" style="margin: 10px 0;">Logged in as: <strong>Guest User (Temporary Session)</strong></p>
+                <p id="guestWarning" style="color: #f87171; font-size: 14px; font-weight: bold;">&#9888;&#65039; CLOSING BROWSER = AUTO LOGOUT</p>
+                <div id="profileUploadControls" style="display:none; margin-top: 20px;">
+                    <label style="color: #b8a8d8; font-weight: bold; margin-bottom: 5px; display: block;">Upload Profile Avatar</label>
+                    <div class="file-button-group">
+                        <button class="file-btn" onclick="document.getElementById('profileFileInput').click()">&#128193; Upload From PC</button>
+                        <button class="file-btn" onclick="document.getElementById('profileUrlGroup').style.display='flex'">&#127760; Set Image URL</button>
+                    </div>
+                    <div id="profileUrlGroup" class="url-input-group" style="display:none;">
+                        <input type="text" id="profileUrlInput" placeholder="Paste Image URL">
+                        <button onclick="uploadProfileUrl()">Save URL</button>
+                    </div>
+                    <input type="file" id="profileFileInput" accept="image/*" onchange="uploadProfileFile(event)">
+                </div>
+
+                <hr style="border:none;border-top:1px solid rgba(124,58,237,0.2);margin:12px 0;">
+
+                <h3 style="margin-top:10px;">Battle Status Display (global defaults)</h3>
+                <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+                    <label style="font-size:14px;color:#d1c1ff;">
+                        <input type="checkbox" id="toggleShowStatusNames" onchange="updateStatusDisplayPrefs()">
+                        &nbsp;Show status names in battle (portrait tags &amp; logs)
+                    </label>
+                    <label style="font-size:14px;color:#d1c1ff;">
+                        <input type="checkbox" id="toggleShowStatusEffects" onchange="updateStatusDisplayPrefs()">
+                        &nbsp;Show status effect descriptions in logs and move UI
+                    </label>
+                    <p style="color:#999;font-size:12px;margin-top:6px;">Tip: these are global defaults &mdash; each status condition also has per-condition toggles when you add/edit it.</p>
+                </div>
+
+            </div>
+            <p style="margin-top: 20px; color: #86efac; font-size: 14px; font-weight: bold;">&#9989; CREATE UNLIMITED HEROES!</p>
+            <p id="dataStorageWarning" style="margin-top: 10px; color: #999; font-size: 14px;">All data is temporary and stored only in this browser session.</p>
+            <button class="logout-btn" onclick="logout()" style="margin-top: 20px;">LOGOUT NOW</button>
+        </div>
+    </div>
+
+    <div id="editHeroModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>&#9999;&#65039; Edit Hero</h2>
+                <button class="close-modal" onclick="closeEditModal()">Close</button>
+            </div>
+            <div id="editFormContainer" class="create-hero-section" style="margin-bottom:0;">
+                <div class="form-group">
+                    <label>Hero Name</label>
+                    <input type="text" id="editHeroName" placeholder="Enter hero name">
+                </div>
+                <div class="form-group">
+                    <label>Archetype</label>
+                    <input type="text" id="editHeroArchetype" placeholder="e.g., Warrior, Mage, Rogue">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="editHeroDescription" placeholder="Describe your hero..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>&#128248; Portrait (PNG/JPEG)</label>
+                    <div class="portrait-section">
+                        <div class="portrait-preview" id="editPortraitPreview">No image selected</div>
+                        <div class="file-button-group">
+                            <button class="file-btn" onclick="document.getElementById('editPortraitFileInput').click()">&#128193; From PC</button>
+                            <button class="file-btn" onclick="document.getElementById('editPortraitUrlGroup').style.display='flex'">&#127760; From Internet</button>
+                        </div>
+                        <div class="url-input-group" id="editPortraitUrlGroup" style="display:none;">
+                            <input type="text" id="editPortraitUrl" placeholder="Paste PNG/JPEG URL here">
+                            <button id="editLoadUrlBtn">Load</button>
+                        </div>
+                        <input type="file" id="editPortraitFileInput" accept=".png,.jpg,.jpeg">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>&#127917; Battle Intros (Combined)</label>
+                    <div class="list-container" id="editCombinedIntrosList"></div>
+                    <button class="add-btn" style="background:#8b5cf6;" onclick="renderIntroField(document.getElementById('editCombinedIntrosList'), 'Combined')">+ Add Battle Intro</button>
+                </div>
+                <div class="form-group">
+                    <label>&#9876;&#65039; Moves</label>
+                    <div class="list-container" id="editMovesList"></div>
+                    <button class="add-btn" onclick="renderMoveField(document.getElementById('editMovesList'))">+ Add Move</button>
+                    <p style="color:#999;font-size:12px;margin-top:6px;">Add conditions/effects to each move as needed.</p>
+                </div>
+                <button id="editSaveBtn" class="create-btn" style="width:100%;font-size:18px;padding:15px;">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="battleAnimationOverlay">
+        <div id="battleAnimationContainer" style="position:relative;"></div>
+    </div>
+
+    <script>
+        /* -----------------------------------------------------------------------
+           Combined script:
+           - Keeps your original UI-management functions (auth, dynamic form builders)
+           - Adds robust showBattleAnimation + fetchPortraitForName + battle engine
+           - Ensures MP4 playback behaviour is correct and animations are awaited
+           - Hides status names until revealed
+           ----------------------------------------------------------------------- */
+
+        // -------------------------
+        // Data + roster
+        // -------------------------
+        let portraitData = null;
+        const defaultWikiImage = 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png';
+
+        // Use full roster you already had. For brevity I include the same array you provided.
+        const arenaCharacters = [{
+                name: 'Naruto Uzumaki',
+                portrait: defaultWikiImage,
+                description: 'Jinchuriki of the Nine-Tails',
+                moves: [{
+                    name: 'Rasengan',
+                    damage: 25,
+                    description: 'Spinning chakra orb'
+                }, {
+                    name: 'Shadow Clone Barrage',
+                    damage: 15,
+                    description: 'Mass clone attack'
+                }, {
+                    name: 'Rasenshuriken',
+                    damage: 35,
+                    description: 'Wind release chakra blade'
+                }, {
+                    name: 'Kurama Mode',
+                    damage: 45,
+                    description: 'Nine-Tails chakra burst'
+                }]
+            },
+            {
+                name: 'Sasuke Uchiha',
+                portrait: defaultWikiImage,
+                description: 'Avenger of the Uchiha',
+                moves: [{
+                    name: 'Chidori',
+                    damage: 28,
+                    description: 'Lightning blade'
+                }, {
+                    name: 'Fireball Jutsu',
+                    damage: 20,
+                    description: 'Uchiha flame technique'
+                }, {
+                    name: 'Amaterasu',
+                    damage: 40,
+                    description: 'Inextinguishable black flames'
+                }, {
+                    name: 'Susanoo Slash',
+                    damage: 45,
+                    description: 'Ethereal armor sword strike'
+                }]
+            },
+            {
+                name: 'Sakura Haruno',
+                portrait: defaultWikiImage,
+                description: 'Medical Ninja',
+                moves: [{
+                    name: 'Cherry Blossom Clash',
+                    damage: 25,
+                    description: 'Chakra-enhanced punch'
+                }, {
+                    name: 'Mystical Palm Healing',
+                    damage: 0,
+                    description: 'Heals wounds (Support)'
+                }, {
+                    name: 'Katsuyu Acid',
+                    damage: 30,
+                    description: 'Summon spit attack'
+                }]
+            },
+            {
+                name: 'Kakashi Hatake',
+                portrait: defaultWikiImage,
+                description: 'Copy Ninja',
+                moves: [{
+                    name: 'Lightning Blade',
+                    damage: 30,
+                    description: 'Focused lightning assassination'
+                }, {
+                    name: 'Kamui',
+                    damage: 45,
+                    description: 'Space-time warp'
+                }, {
+                    name: 'Water Dragon Jutsu',
+                    damage: 25,
+                    description: 'Water manipulation'
+                }]
+            },
+            {
+                name: 'Goku',
+                portrait: defaultWikiImage,
+                description: 'Saiyan from Earth',
+                moves: [{
+                    name: 'Kamehameha',
+                    damage: 35,
+                    description: 'Energy wave'
+                }, {
+                    name: 'Spirit Bomb',
+                    damage: 50,
+                    description: 'Gathered energy from all life'
+                }, {
+                    name: 'Instant Transmission Strike',
+                    damage: 20,
+                    description: 'Teleportation attack'
+                }, {
+                    name: 'Dragon Fist',
+                    damage: 45,
+                    description: 'Golden dragon ki attack'
+                }]
+            },
+            {
+                name: 'Vegeta',
+                portrait: defaultWikiImage,
+                description: 'Prince of all Saiyans',
+                moves: [{
+                    name: 'Galick Gun',
+                    damage: 30,
+                    description: 'Purple ki beam'
+                }, {
+                    name: 'Final Flash',
+                    damage: 45,
+                    description: 'Ultimate golden beam'
+                }, {
+                    name: 'Big Bang Attack',
+                    damage: 35,
+                    description: 'Explosive ki sphere'
+                }]
+            },
+            {
+                name: 'Gohan',
+                portrait: defaultWikiImage,
+                description: 'Hidden Potential',
+                moves: [{
+                    name: 'Masenko',
+                    damage: 25,
+                    description: 'Demon flash'
+                }, {
+                    name: 'Father-Son Kamehameha',
+                    damage: 50,
+                    description: 'Desperate beam'
+                }, {
+                    name: 'Mystic Assault',
+                    damage: 30,
+                    description: 'Unleashed potential flurry'
+                }]
+            },
+            {
+                name: 'Frieza',
+                portrait: defaultWikiImage,
+                description: 'Galactic Emperor',
+                moves: [{
+                    name: 'Death Beam',
+                    damage: 25,
+                    description: 'Piercing finger laser'
+                }, {
+                    name: 'Death Ball',
+                    damage: 45,
+                    description: 'Planet-destroying orb'
+                }, {
+                    name: 'Nova Strike',
+                    damage: 30,
+                    description: 'Full power tackle'
+                }]
+            },
+            {
+                name: 'Cell',
+                portrait: defaultWikiImage,
+                description: 'Perfect Android',
+                moves: [{
+                    name: 'Perfect Kamehameha',
+                    damage: 40,
+                    description: 'Stolen technique'
+                }, {
+                    name: 'Special Beam Cannon',
+                    damage: 35,
+                    description: 'Piercing spiral'
+                }, {
+                    name: 'Solar Flare',
+                    damage: 10,
+                    description: 'Blinding light flash'
+                }]
+            },
+            {
+                name: 'Monkey D. Luffy',
+                portrait: defaultWikiImage,
+                description: 'Straw Hat Pirate',
+                moves: [{
+                    name: 'Gum-Gum Pistol',
+                    damage: 20,
+                    description: 'Stretching punch'
+                }, {
+                    name: 'Gear Second: Jet Gatling',
+                    damage: 35,
+                    description: 'High-speed flurry'
+                }, {
+                    name: 'Red Hawk',
+                    damage: 30,
+                    description: 'Fire-infused punch'
+                }, {
+                    name: 'Bajrang Gun',
+                    damage: 50,
+                    description: 'Gear 5 giant fist'
+                }]
+            },
+            // ... the rest of your roster (kept intact) ...
+        ];
+
+        // -------------------------
+        // Preferences & storage
+        // -------------------------
+        const PREF_KEY = 'arcanePrefs';
+        const defaultPrefs = {
+            showStatusNames: false,
+            showStatusEffects: false
+        }; // default keep names hidden until revealed
+
+        function loadPrefs() {
+            try {
+                const raw = localStorage.getItem(PREF_KEY);
+                if (!raw) return {
+                    ...defaultPrefs
+                };
+                return {
+                    ...defaultPrefs,
+                    ...JSON.parse(raw)
+                };
+            } catch (e) {
+                return {
+                    ...defaultPrefs
+                };
+            }
+        }
+
+        function savePrefs(p) {
+            localStorage.setItem(PREF_KEY, JSON.stringify(p));
+        }
+
+        function updateStatusDisplayPrefs() {
+            const showNames = document.getElementById('toggleShowStatusNames')?.checked;
+            const showEffects = document.getElementById('toggleShowStatusEffects')?.checked;
+            const p = loadPrefs();
+            p.showStatusNames = !!showNames;
+            p.showStatusEffects = !!showEffects;
+            savePrefs(p);
+            renderStatuses('player');
+            renderStatuses('enemy');
+        }
+
+        // -------------------------
+        // Auth, account, and user storage (kept from your original file)
+        // -------------------------
+        function showAuthScreen(mode) {
+            window.authMode = mode;
+            document.getElementById('initialButtons').style.display = 'none';
+            document.getElementById('authFormContainer').style.display = 'block';
+            document.getElementById('authTitle').innerText = mode === 'create' ? 'Create Account' : 'Login';
+            document.getElementById('authSubmitBtn').innerText = mode === 'create' ? 'CREATE ACCOUNT' : 'LOGIN';
+        }
+
+        function hideAuthScreen() {
+            document.getElementById('initialButtons').style.display = 'block';
+            document.getElementById('authFormContainer').style.display = 'none';
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+        }
+
+        function executeAuth() {
+            window.authMode === 'create' ? createAccount() : normalLogin();
+        }
+
+        function createAccount() {
+            const u = document.getElementById('loginUsername').value.trim();
+            const p = document.getElementById('loginPassword').value;
+            if (!u || !p) return alert('Enter username and password.');
+            let users = JSON.parse(localStorage.getItem('arcaneUsers') || '{}');
+            if (users[u]) return alert('Account exists.');
+            users[u] = {
+                password: p,
+                profileIcon: '',
+                gameData: {
+                    heroes: [],
+                    battleHistory: []
+                }
+            };
+            localStorage.setItem('arcaneUsers', JSON.stringify(users));
+            alert('Account created! You can now log in.');
+            hideAuthScreen();
+        }
+
+        function normalLogin() {
+            const u = document.getElementById('loginUsername').value.trim();
+            const p = document.getElementById('loginPassword').value;
+            let users = JSON.parse(localStorage.getItem('arcaneUsers') || '{}');
+            const knownAccounts = Object.keys(users);
+            if (!users[u]) {
+                const hint = knownAccounts.length > 0
+                    ? `No account found for "${u}".\nExisting accounts: ${knownAccounts.join(', ')}`
+                    : `No account found for "${u}".\nNo accounts exist yet — use CREATE ACCOUNT first.`;
+                return alert(hint);
+            }
+            if (users[u].password !== p) return alert('Wrong password for "' + u + '".');
+            localStorage.setItem('currentUser', u);
+            sessionStorage.setItem('userType', 'account');
+            sessionStorage.setItem('gameData', JSON.stringify(users[u].gameData));
+            showMainApp();
+        }
+
+        function toggleAccountViewer() {
+            const panel = document.getElementById('accountViewerPanel');
+            const list = document.getElementById('accountViewerList');
+            const isVisible = panel.style.display !== 'none';
+            if (isVisible) {
+                panel.style.display = 'none';
+                return;
+            }
+            const users = JSON.parse(localStorage.getItem('arcaneUsers') || '{}');
+            const names = Object.keys(users);
+            if (names.length === 0) {
+                list.innerHTML = '<p style="color:#999;font-size:13px;">No accounts have been created yet.</p>';
+            } else {
+                list.innerHTML = names.map(name => {
+                    const u = users[name];
+                    const heroCount = (u.gameData && u.gameData.heroes) ? u.gameData.heroes.length : 0;
+                    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;margin:5px 0;background:rgba(60,20,100,0.4);border:1px solid #7c3aed;border-radius:6px;">
+                        ${u.profileIcon
+                            ? `<img src="${u.profileIcon}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid #7c3aed;">`
+                            : `<div style="width:32px;height:32px;border-radius:50%;background:rgba(124,58,237,0.3);border:2px solid #7c3aed;display:flex;align-items:center;justify-content:center;font-size:16px;">&#128100;</div>`}
+                        <div>
+                            <div style="color:#fff;font-weight:bold;font-size:14px;">${name}</div>
+                            <div style="color:#b8a8d8;font-size:11px;">${heroCount} hero${heroCount !== 1 ? 'es' : ''}</div>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+            panel.style.display = 'block';
+        }
+
+        function guestLogin() {
+            sessionStorage.setItem('userType', 'guest');
+            sessionStorage.setItem('gameData', JSON.stringify({
+                heroes: []
+            }));
+            showMainApp();
+        }
+
+        function saveAccountData() {
+            const cu = localStorage.getItem('currentUser');
+            if (!cu) return;
+            let users = JSON.parse(localStorage.getItem('arcaneUsers') || '{}');
+            if (users[cu]) {
+                users[cu].gameData = JSON.parse(sessionStorage.getItem('gameData') || '{"heroes":[]}');
+                localStorage.setItem('arcaneUsers', JSON.stringify(users));
+            }
+        }
+
+        function showMainApp() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainApp').classList.add('active');
+            const type = sessionStorage.getItem('userType');
+            const cu = localStorage.getItem('currentUser');
+            if (type === 'account') {
+                document.getElementById('loggedInStatus').innerHTML = `Logged in as: <strong>${cu}</strong>`;
+                document.getElementById('guestWarning').style.display = 'none';
+                document.getElementById('profileUploadControls').style.display = 'block';
+                document.getElementById('dataStorageWarning').innerText = 'Data saved in browser.';
+                loadUserProfileIcon(cu);
+            } else {
+                document.getElementById('loggedInStatus').innerHTML = `Logged in as: <strong>Guest User</strong>`;
+                document.getElementById('guestWarning').style.display = 'block';
+                document.getElementById('profileUploadControls').style.display = 'none';
+                document.getElementById('dataStorageWarning').innerText = 'Data is temporary.';
+                document.getElementById('headerAvatar').style.display = 'none';
+            }
+            const prefs = loadPrefs();
+            const tShow = document.getElementById('toggleShowStatusNames');
+            const tShowEff = document.getElementById('toggleShowStatusEffects');
+            if (tShow) tShow.checked = !!prefs.showStatusNames;
+            if (tShowEff) tShowEff.checked = !!prefs.showStatusEffects;
+            loadHeroes();
+            populateHeroSelector();
+        }
+
+        function loadUserProfileIcon(username) {
+            let users = JSON.parse(localStorage.getItem('arcaneUsers') || '{}');
+            let icon = users[username]?.profileIcon || '';
+            const avatar = document.getElementById('headerAvatar');
+            if (icon) {
+                avatar.src = icon;
+                avatar.style.display = 'block';
+            } else {
+                avatar.style.display = 'none';
+            }
+        }
+
+        function uploadProfileFile(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = e => saveProfileIcon(e.target.result);
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function uploadProfileUrl() {
+            const url = document.getElementById('profileUrlInput').value;
+            if (url) {
+                saveProfileIcon(url);
+                document.getElementById('profileUrlInput').value = '';
+                document.getElementById('profileUrlGroup').style.display = 'none';
+            }
+        }
+
+        function saveProfileIcon(dataUrl) {
+            const cu = localStorage.getItem('currentUser');
+            if (!cu) return;
+            let users = JSON.parse(localStorage.getItem('arcaneUsers') || '{}');
+            if (users[cu]) {
+                users[cu].profileIcon = dataUrl;
+                localStorage.setItem('arcaneUsers', JSON.stringify(users));
+                loadUserProfileIcon(cu);
+                alert('Profile updated!');
+            }
+        }
+
+        function logout() {
+            if (confirm(sessionStorage.getItem('userType') === 'guest' ? 'WARNING: Guest data will be deleted! Continue?' : 'Logout?')) {
+                sessionStorage.clear();
+                localStorage.removeItem('currentUser');
+                location.reload();
+            }
+        }
+
+        function switchTab(tabName, btn) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            if (btn) btn.classList.add('active');
+            if (tabName === 'arena') populateHeroSelector();
+            else if (tabName === 'heroes') loadHeroes();
+            else if (tabName === 'friends') loadFriendsTab();
+        }
+
+        // -------------------------
+        // Friends system
+        // -------------------------
+        function getFriendData() {
+            const cu = localStorage.getItem('currentUser');
+            if (!cu) return null;
+            const users = JSON.parse(localStorage.getItem('arcaneUsers') || '{}');
+            if (!users[cu]) return null;
+            if (!users[cu].friends) users[cu].friends = [];
+            if (!users[cu].friendRequests) users[cu].friendRequests = [];
+            return { cu, users };
+        }
+
+        function saveFriendData(users) {
+            localStorage.setItem('arcaneUsers', JSON.stringify(users));
+        }
+
+        function addFriend() {
+            const input = document.getElementById('friendUsernameInput');
+            const msg = document.getElementById('friendAddMsg');
+            const target = input.value.trim();
+            input.value = '';
+            if (!target) { msg.style.color = '#f87171'; msg.innerText = 'Enter a username.'; return; }
+            const fd = getFriendData();
+            if (!fd) { msg.style.color = '#f87171'; msg.innerText = 'You must be logged in to add friends.'; return; }
+            const { cu, users } = fd;
+            if (target === cu) { msg.style.color = '#f87171'; msg.innerText = "You can't add yourself."; return; }
+            if (!users[target]) { msg.style.color = '#f87171'; msg.innerText = `No account found for "${target}".`; return; }
+            if ((users[cu].friends || []).includes(target)) { msg.style.color = '#f87171'; msg.innerText = `${target} is already your friend.`; return; }
+            // Send friend request
+            if (!users[target].friendRequests) users[target].friendRequests = [];
+            if (users[target].friendRequests.includes(cu)) { msg.style.color = '#f87171'; msg.innerText = `Request already sent to ${target}.`; return; }
+            users[target].friendRequests.push(cu);
+            saveFriendData(users);
+            msg.style.color = '#86efac';
+            msg.innerText = `Friend request sent to ${target}!`;
+            loadFriendsTab();
+        }
+
+        function acceptFriend(from) {
+            const fd = getFriendData();
+            if (!fd) return;
+            const { cu, users } = fd;
+            users[cu].friendRequests = (users[cu].friendRequests || []).filter(r => r !== from);
+            if (!users[cu].friends) users[cu].friends = [];
+            if (!users[cu].friends.includes(from)) users[cu].friends.push(from);
+            if (!users[from]) return;
+            if (!users[from].friends) users[from].friends = [];
+            if (!users[from].friends.includes(cu)) users[from].friends.push(cu);
+            saveFriendData(users);
+            loadFriendsTab();
+        }
+
+        function declineFriend(from) {
+            const fd = getFriendData();
+            if (!fd) return;
+            const { cu, users } = fd;
+            users[cu].friendRequests = (users[cu].friendRequests || []).filter(r => r !== from);
+            saveFriendData(users);
+            loadFriendsTab();
+        }
+
+        function removeFriend(name) {
+            if (!confirm(`Remove ${name} as a friend?`)) return;
+            const fd = getFriendData();
+            if (!fd) return;
+            const { cu, users } = fd;
+            users[cu].friends = (users[cu].friends || []).filter(f => f !== name);
+            if (users[name]) users[name].friends = (users[name].friends || []).filter(f => f !== cu);
+            saveFriendData(users);
+            loadFriendsTab();
+        }
+
+        function viewFriendProfile(name) {
+            const users = JSON.parse(localStorage.getItem('arcaneUsers') || '{}');
+            const friend = users[name];
+            if (!friend) return;
+            const content = document.getElementById('friendProfileContent');
+            const heroes = (friend.gameData && friend.gameData.heroes) || [];
+            const avatar = friend.profileIcon;
+            const privateHeroes = friend.privateHeroes || [];
+
+            let heroHTML = heroes.length === 0
+                ? '<p style="color:#999;font-size:13px;">No heroes yet.</p>'
+                : heroes.map(h => {
+                    const isPrivate = privateHeroes.includes(h.id);
+                    if (isPrivate) return `
+                        <div style="background:rgba(60,20,100,0.4);border:1px solid #7c3aed;border-radius:8px;padding:12px;text-align:center;opacity:0.5;">
+                            <div style="font-size:24px;">🔒</div>
+                            <div style="color:#999;font-size:12px;margin-top:4px;">Private Hero</div>
+                        </div>`;
+                    return `
+                        <div style="background:rgba(60,20,100,0.6);border:2px solid #7c3aed;border-radius:8px;padding:12px;text-align:center;">
+                            <img src="${escapeHtml(h.portrait || defaultWikiImage)}" style="width:80px;height:80px;object-fit:contain;border-radius:6px;display:block;margin:0 auto 6px;">
+                            <div style="color:#fff;font-weight:bold;font-size:13px;">${escapeHtml(h.name)}</div>
+                            <div style="color:#b8a8d8;font-size:11px;">${escapeHtml(h.archetype || '')}</div>
+                            <div style="color:#999;font-size:10px;margin-top:4px;">${(h.moves || []).length} move${(h.moves||[]).length !== 1 ? 's' : ''}</div>
+                        </div>`;
+                }).join('');
+
+            content.innerHTML = `
+                <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+                    ${avatar ? `<img src="${escapeHtml(avatar)}" style="width:64px;height:64px;border-radius:50%;border:2px solid #7c3aed;object-fit:cover;">` : `<div style="width:64px;height:64px;border-radius:50%;border:2px solid #7c3aed;background:rgba(124,58,237,0.3);display:flex;align-items:center;justify-content:center;font-size:28px;">👤</div>`}
+                    <div>
+                        <h2 style="color:#fff;margin:0;">${escapeHtml(name)}</h2>
+                        <div style="color:#b8a8d8;font-size:13px;">${heroes.length} hero${heroes.length !== 1 ? 'es' : ''}</div>
+                    </div>
+                </div>
+                <h3 style="color:#a855f7;margin-bottom:12px;">Heroes</h3>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;">${heroHTML}</div>
+            `;
+            document.getElementById('friendProfileModal').style.display = 'block';
+        }
+
+        function closeFriendProfile() {
+            document.getElementById('friendProfileModal').style.display = 'none';
+        }
+
+        function togglePrivateHero(heroId) {
+            const cu = localStorage.getItem('currentUser');
+            if (!cu) return;
+            const users = JSON.parse(localStorage.getItem('arcaneUsers') || '{}');
+            if (!users[cu]) return;
+            if (!users[cu].privateHeroes) users[cu].privateHeroes = [];
+            const idx = users[cu].privateHeroes.indexOf(heroId);
+            if (idx === -1) users[cu].privateHeroes.push(heroId);
+            else users[cu].privateHeroes.splice(idx, 1);
+            localStorage.setItem('arcaneUsers', JSON.stringify(users));
+            loadFriendsTab();
+        }
+
+        function loadFriendsTab() {
+            const cu = localStorage.getItem('currentUser');
+            const type = sessionStorage.getItem('userType');
+            const friendsList = document.getElementById('friendsList');
+            const requestsSection = document.getElementById('friendRequestsSection');
+            const requestsList = document.getElementById('friendRequestsList');
+
+            if (type !== 'account' || !cu) {
+                friendsList.innerHTML = '<p style="color:#f87171;font-size:13px;">You must be logged in with an account to use Friends.</p>';
+                requestsSection.style.display = 'none';
+                return;
+            }
+
+            const users = JSON.parse(localStorage.getItem('arcaneUsers') || '{}');
+            const me = users[cu];
+            if (!me) return;
+            const friends = me.friends || [];
+            const requests = me.friendRequests || [];
+            const privateHeroes = me.privateHeroes || [];
+
+            // Friend requests
+            if (requests.length > 0) {
+                requestsSection.style.display = 'block';
+                requestsList.innerHTML = requests.map(from => `
+                    <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(60,20,100,0.4);border:1px solid #7c3aed;border-radius:8px;padding:10px 14px;margin-bottom:8px;">
+                        <span style="color:#fff;font-weight:bold;">${escapeHtml(from)}</span>
+                        <div style="display:flex;gap:8px;">
+                            <button onclick="acceptFriend('${escapeHtml(from)}')" style="background:#22c55e;color:white;border:none;padding:5px 12px;border-radius:5px;cursor:pointer;font-size:12px;">Accept</button>
+                            <button onclick="declineFriend('${escapeHtml(from)}')" style="background:#dc2626;color:white;border:none;padding:5px 12px;border-radius:5px;cursor:pointer;font-size:12px;">Decline</button>
+                        </div>
+                    </div>`).join('');
+            } else {
+                requestsSection.style.display = 'none';
+            }
+
+            // Friends list
+            if (friends.length === 0) {
+                friendsList.innerHTML = '<p style="color:#999;font-size:13px;">No friends yet. Add some above!</p>';
+            } else {
+                // My heroes with privacy toggles
+                const myHeroes = (me.gameData && me.gameData.heroes) || [];
+                const myHeroesHTML = myHeroes.length === 0 ? '' : `
+                    <div class="settings-section" style="margin-top:16px;">
+                        <h4 style="color:#a855f7;margin-bottom:10px;">🔒 My Hero Privacy</h4>
+                        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;">
+                            ${myHeroes.map(h => {
+                                const isPrivate = privateHeroes.includes(h.id);
+                                return `<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(60,20,100,0.4);border:1px solid #7c3aed;border-radius:6px;padding:8px 10px;">
+                                    <span style="color:#fff;font-size:12px;">${escapeHtml(h.name)}</span>
+                                    <button onclick="togglePrivateHero('${h.id}')" style="background:${isPrivate ? '#dc2626' : '#22c55e'};color:white;border:none;padding:3px 8px;border-radius:4px;cursor:pointer;font-size:11px;">${isPrivate ? '🔒 Private' : '👁 Public'}</button>
+                                </div>`;
+                            }).join('')}
+                        </div>
+                    </div>`;
+
+                friendsList.innerHTML = friends.map(name => {
+                    const friend = users[name];
+                    const heroCount = friend ? ((friend.gameData && friend.gameData.heroes) || []).length : 0;
+                    const avatar = friend && friend.profileIcon;
+                    return `
+                    <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(60,20,100,0.5);border:2px solid #7c3aed;border-radius:10px;padding:12px 16px;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            ${avatar ? `<img src="${escapeHtml(avatar)}" style="width:44px;height:44px;border-radius:50%;border:2px solid #7c3aed;object-fit:cover;">` : `<div style="width:44px;height:44px;border-radius:50%;border:2px solid #7c3aed;background:rgba(124,58,237,0.3);display:flex;align-items:center;justify-content:center;font-size:20px;">👤</div>`}
+                            <div>
+                                <div style="color:#fff;font-weight:bold;">${escapeHtml(name)}</div>
+                                <div style="color:#b8a8d8;font-size:12px;">${heroCount} hero${heroCount !== 1 ? 'es' : ''}</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <button onclick="viewFriendProfile('${escapeHtml(name)}')" style="background:#3b82f6;color:white;border:none;padding:6px 12px;border-radius:5px;cursor:pointer;font-size:12px;font-weight:bold;">👤 Profile</button>
+                            <button onclick="removeFriend('${escapeHtml(name)}')" style="background:transparent;border:1px solid #dc2626;color:#f87171;padding:6px 12px;border-radius:5px;cursor:pointer;font-size:12px;">Remove</button>
+                        </div>
+                    </div>`;
+                }).join('') + myHeroesHTML;
+            }
+        }
+
+        // -------------------------
+        // Portrait & file handling
+        // -------------------------
+        function showPortraitUrlInput() {
+            document.getElementById('portraitUrlInputGroup').style.display = 'flex';
+        }
+
+        function loadPortraitFromFile(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    portraitData = e.target.result;
+                    document.getElementById('portraitPreview').innerHTML = `<img src="${portraitData}">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function loadPortraitFromUrl() {
+            const url = document.getElementById('portraitUrl').value;
+            if (url) {
+                portraitData = url;
+                document.getElementById('portraitPreview').innerHTML = `<img src="${url}">`;
+                document.getElementById('portraitUrl').value = '';
+                document.getElementById('portraitUrlInputGroup').style.display = 'none';
+            }
+        }
+
+        function handleMediaFileUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const container = input.closest('.media-item');
+            const urlInput = container.querySelector('.media-url');
+            // Use blob URL for videos (avoids size limits of data URLs with large MP4s)
+            const isVideo = file.type.startsWith('video/');
+            if (isVideo) {
+                // Revoke any previous blob URL stored on this input to avoid memory leaks
+                if (input._blobUrl) URL.revokeObjectURL(input._blobUrl);
+                const blobUrl = URL.createObjectURL(file);
+                input._blobUrl = blobUrl;
+                urlInput.value = blobUrl;
+                // Show a filename label next to the URL box so user knows what's loaded
+                let fileLabel = container.querySelector('.media-filename');
+                if (!fileLabel) {
+                    fileLabel = document.createElement('div');
+                    fileLabel.className = 'media-filename';
+                    fileLabel.style.cssText = 'color:#86efac;font-size:11px;margin-top:3px;';
+                    urlInput.parentNode.insertAdjacentElement('afterend', fileLabel);
+                }
+                fileLabel.textContent = '📹 ' + file.name;
+            } else {
+                // Images/GIFs use data URL as before
+                const reader = new FileReader();
+                reader.onload = e => { urlInput.value = e.target.result; };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // -------------------------
+        // Dynamic UI builders (intro, move, conditions)
+        // -------------------------
+        function renderMediaVariant(container, data = null) {
+            const div = document.createElement('div');
+            div.className = 'nested-container media-item';
+            div.innerHTML = `
+                <div class="nested-header"><h5>&#127916; Animation Variant</h5><button type="button" class="remove-btn" onclick="this.closest('.media-item').remove()">Remove</button></div>
+                <div style="display: flex; gap: 5px; margin-bottom: 5px;">
+                    <input type="text" class="media-url" placeholder="Paste URL or upload MP4/GIF below" value="${data ? escapeHtml(data.url) : ''}" style="flex:1; padding: 5px; background: rgba(20,10,40,0.7); border: 1px solid #7c3aed; color: #fff; border-radius: 3px;">
+                </div>
+                <div style="display:flex;gap:6px;margin-bottom:5px;">
+                    <button type="button" class="add-btn-small" style="background:#3b82f6;" onclick="this.closest('.media-item').querySelector('input[type=file]').click()">&#128193; Upload MP4 / GIF</button>
+                </div>
+                <input type="file" accept="video/mp4,video/webm,video/ogg,image/gif,image/png,image/jpeg" style="display:none;" onchange="handleMediaFileUpload(this)">
+                <label class="inline-checkbox"><input type="checkbox" class="media-audio" ${!data || data.hasAudio ? 'checked' : ''}> Enable Audio (MP4/WebM)</label>
+            `;
+            container.appendChild(div);
+        }
+
+        function renderIntroField(container, typeLabel, data = null) {
+            const div = document.createElement('div');
+            div.className = 'item-card intro-card';
+            const opponentsHtml = `
+                <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px; margin: 10px 0;">
+                    <label style="color: #ef4444; font-size: 14px; font-weight: bold; margin-bottom: 8px; display: block;">Target Opponents
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                        <input type="text" class="intro-opponent-member" placeholder="Opponent 1" value="${(data && data.opponents && data.opponents[0]) ? escapeHtml(data.opponents[0]) : ''}">
+                        <input type="text" class="intro-opponent-member" placeholder="Opponent 2" value="${(data && data.opponents && data.opponents[1]) ? escapeHtml(data.opponents[1]) : ''}">
+                        <input type="text" class="intro-opponent-member" placeholder="Opponent 3" value="${(data && data.opponents && data.opponents[2]) ? escapeHtml(data.opponents[2]) : ''}">
+                        <input type="text" class="intro-opponent-member" placeholder="Opponent 4" value="${(data && data.opponents && data.opponents[3]) ? escapeHtml(data.opponents[3]) : ''}">
+                        <input type="text" class="intro-opponent-member" placeholder="Opponent 5" value="${(data && data.opponents && data.opponents[4]) ? escapeHtml(data.opponents[4]) : ''}">
+                    
+                
+            `;
+            const alliesHtml = `
+                <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px; margin: 10px 0;">
+                    <label style="color: #10b981; font-size: 14px; font-weight: bold; margin-bottom: 8px; display: block;">Involved Allies
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                        <input type="text" class="intro-ally-member" placeholder="Ally 1" value="${(data && data.allies && data.allies[0]) ? escapeHtml(data.allies[0]) : ''}">
+                        <input type="text" class="intro-ally-member" placeholder="Ally 2" value="${(data && data.allies && data.allies[1]) ? escapeHtml(data.allies[1]) : ''}">
+                        <input type="text" class="intro-ally-member" placeholder="Ally 3" value="${(data && data.allies && data.allies[2]) ? escapeHtml(data.allies[2]) : ''}">
+                        <input type="text" class="intro-ally-member" placeholder="Ally 4" value="${(data && data.allies && data.allies[3]) ? escapeHtml(data.allies[3]) : ''}">
+                        <input type="text" class="intro-ally-member" placeholder="Ally 5" value="${(data && data.allies && data.allies[4]) ? escapeHtml(data.allies[4]) : ''}">
+                    
+                
+            `;
+            div.innerHTML = `
+                <div class="item-header"><h4>${escapeHtml(typeLabel)} Intro</h4><button type="button" class="remove-btn" onclick="this.closest('.intro-card').remove()">Remove</button></div>
+                ${opponentsHtml}
+                ${alliesHtml}
+                <div class="media-list" style="margin-top: 10px;"></div>
+                <button type="button" class="add-btn-small" onclick="renderMediaVariant(this.previousElementSibling)">+ Add Random Animation Variant</button>
+            `;
+            container.appendChild(div);
+            const mediaList = div.querySelector('.media-list');
+            if (data && data.media && data.media.length > 0) {
+                data.media.forEach(m => renderMediaVariant(mediaList, m));
+            }
+        }
+
+        function renderConditionField(container, data = null) {
+            const prefs = loadPrefs();
+            const div = document.createElement('div');
+            div.className = 'nested-container condition-card';
+            div.innerHTML = `
+                <div class="nested-header"><h5>&#10024; Status Effect</h5><button type="button" class="remove-btn" onclick="this.closest('.condition-card').remove()">Remove</button></div>
+                <label style="color:#c4b5fd;font-size:12px;display:block;margin-bottom:3px;">Status Name <span style="color:#999;">(optional)</span></label>
+                <input type="text" class="cond-req" placeholder="e.g. Burning, Frozen, Poisoned... (leave blank to hide name)" value="${data ? escapeHtml(data.requirement || '') : ''}">
+                <label style="color:#c4b5fd;font-size:12px;display:block;margin-top:8px;margin-bottom:3px;">Effect Description</label>
+                <textarea class="cond-eff" placeholder="Describe what happens... e.g. deals 10 damage, heals 15 HP, reduces speed by 50%" style="width:100%;min-height:60px;padding:8px;background:rgba(20,10,40,0.7);border:1px solid #7c3aed;border-radius:4px;color:#e0e0e0;font-family:inherit;resize:vertical;">${data ? escapeHtml(data.effect || '') : ''}</textarea>
+                <label style="color:#c4b5fd;font-size:12px;display:block;margin-top:8px;margin-bottom:3px;">Animation URL <span style="color:#999;">(optional)</span></label>
+                <input type="text" class="cond-anim" placeholder="MP4/GIF URL — plays when this status triggers" value="${data ? escapeHtml(data.animation || '') : ''}" style="width:100%;padding:8px;background:rgba(20,10,40,0.7);border:1px solid #7c3aed;border-radius:4px;color:#e0e0e0;font-family:inherit;box-sizing:border-box;">
+                <label class="inline-checkbox" style="margin-top:6px;"><input type="checkbox" class="cond-audio" ${!data || data.hasAudio ? 'checked' : ''}> Enable Audio</label>
+                <hr style="border:none;border-top:1px solid rgba(124,58,237,0.12);margin:8px 0;">
+                <label class="inline-checkbox"><input type="checkbox" class="cond-show-name" ${data ? (data.showName ? 'checked' : '') : 'checked'}> Show status name in battle</label>
+                <label class="inline-checkbox"><input type="checkbox" class="cond-show-effect" ${data ? (data.showEffect ? 'checked' : '') : 'checked'}> Show effect description in logs</label>
+            `;
+            container.appendChild(div);
+        }
+
+        function escapeHtml(s) {
+            return String(s || '').replace(/[&<>"']/g, function(m) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                } [m];
+            });
+        }
+
+        function renderMoveField(container, data = null) {
+            const div = document.createElement('div');
+            div.className = 'item-card move-card';
+            div.innerHTML = `
+                <div class="item-header"><h4>Move Details</h4><button type="button" class="remove-btn" onclick="this.closest('.move-card').remove()">Remove</button></div>
+                <input type="text" class="move-name" placeholder="Move Name" value="${data ? escapeHtml(data.name) : ''}">
+                <input type="text" class="move-desc" placeholder="Description" value="${data ? escapeHtml(data.description) : ''}">
+                <div class="move-media-list" style="margin-top: 10px;"></div>
+                <button type="button" class="add-btn-small" onclick="renderMediaVariant(this.previousElementSibling)">+ Add Random Attack Animation (MP4/GIF)</button>
+                <div class="conditions-list" style="margin-top:10px;"></div>
+                <button type="button" class="add-btn-small" style="background:#8b5cf6;" onclick="renderConditionField(this.previousElementSibling)">+ Add Condition/Effect</button>
+            `;
+            container.appendChild(div);
+            const mediaList = div.querySelector('.move-media-list');
+            if (data && data.media && data.media.length > 0) {
+                data.media.forEach(m => renderMediaVariant(mediaList, m));
+            } else if (data && data.animation) {
+                renderMediaVariant(mediaList, {
+                    url: data.animation,
+                    hasAudio: data.hasAudio
+                });
+            }
+            const condList = div.querySelector('.conditions-list');
+            if (data && data.conditions) {
+                data.conditions.forEach(c => renderConditionField(condList, c));
+            } else if (data && data.condition && data.condition !== 'none') {
+                renderConditionField(condList, {
+                    requirement: data.condition,
+                    effect: data.effect,
+                    animation: data.condAnimation,
+                    hasAudio: data.hasAudio,
+                    showName: data.showName,
+                    showEffect: data.showEffect
+                });
+            }
+        }
+
+        // -------------------------
+        // Data extraction (create hero)
+        // -------------------------
+        function extractIntros(containerId) {
+            const intros = [];
+            document.querySelectorAll(`#${containerId} .intro-card`).forEach(card => {
+                const opponents = [];
+                card.querySelectorAll('.intro-opponent-member').forEach(input => {
+                    const val = input.value.trim();
+                    if (val) opponents.push(val);
+                });
+                const allies = [];
+                card.querySelectorAll('.intro-ally-member').forEach(input => {
+                    const val = input.value.trim();
+                    if (val) allies.push(val);
+                });
+                // require at least 1 opponent OR 1 ally — the rest are optional
+                if (opponents.length === 0 && allies.length === 0) return;
+                const media = [];
+                card.querySelectorAll('.media-item').forEach(mCard => {
+                    const url = mCard.querySelector('.media-url').value.trim();
+                    const audio = mCard.querySelector('.media-audio').checked;
+                    if (url) media.push({
+                        url,
+                        hasAudio: audio
+                    });
+                });
+                intros.push({
+                    opponents,
+                    allies,
+                    media
+                });
+            });
+            return intros;
+        }
+
+        function extractMoves(containerId) {
+            const moves = [];
+            document.querySelectorAll(`#${containerId} .move-card`).forEach(card => {
+                const name = card.querySelector('.move-name').value.trim();
+                if (!name) return;
+                const description = card.querySelector('.move-desc').value.trim();
+                const media = [];
+                card.querySelectorAll('.move-media-list .media-item').forEach(mCard => {
+                    const url = mCard.querySelector('.media-url').value.trim();
+                    const audio = mCard.querySelector('.media-audio').checked;
+                    if (url) media.push({
+                        url,
+                        hasAudio: audio
+                    });
+                });
+                const conditions = [];
+                card.querySelectorAll('.condition-card').forEach(cCard => {
+                    const req = cCard.querySelector('.cond-req') ? cCard.querySelector('.cond-req').value.trim() : '';
+                    const eff = cCard.querySelector('.cond-eff') ? cCard.querySelector('.cond-eff').value.trim() : '';
+                    const anim = cCard.querySelector('.cond-anim') ? cCard.querySelector('.cond-anim').value.trim() : '';
+                    const hasAudio = cCard.querySelector('.cond-audio') ? cCard.querySelector('.cond-audio').checked : false;
+                    const showName = cCard.querySelector('.cond-show-name') ? cCard.querySelector('.cond-show-name').checked : true;
+                    const showEffect = cCard.querySelector('.cond-show-effect') ? cCard.querySelector('.cond-show-effect').checked : true;
+                    if (!eff) return; // skip cards with no effect
+                    conditions.push({
+                        requirement: req, // name is optional
+                        effect: eff,
+                        animation: anim || null,
+                        hasAudio: !!hasAudio,
+                        showName: !!showName,
+                        showEffect: !!showEffect
+                    });
+                });
+                moves.push({
+                    name,
+                    description,
+                    damage: 0,
+                    media,
+                    conditions
+                });
+            });
+            return moves;
+        }
+
+        // createHero: save into sessionStorage gameData.heroes
+        function createHero() {
+            const name = document.getElementById('heroName').value.trim();
+            if (!name) return alert('Enter a hero name.');
+            const archetype = document.getElementById('heroArchetype').value.trim();
+            const description = document.getElementById('heroDescription').value.trim();
+            const portrait = portraitData || defaultWikiImage;
+            const combinedIntros = extractIntros('combinedIntrosList');
+            const moves = extractMoves('movesList');
+            // Simplify move damages if user didn't set damage: random or default
+            moves.forEach((m, idx) => {
+                if (!m.damage || m.damage === 0) m.damage = 10 + (idx * 5);
+            });
+
+            const gameData = JSON.parse(sessionStorage.getItem('gameData') || '{"heroes":[]}');
+            gameData.heroes = gameData.heroes || [];
+            const heroObj = {
+                id: 'hero-' + Date.now(),
+                name,
+                archetype,
+                description,
+                portrait,
+                combinedIntros,
+                moves,
+                level: 1
+            };
+            gameData.heroes.push(heroObj);
+            sessionStorage.setItem('gameData', JSON.stringify(gameData));
+            portraitData = null;
+            document.getElementById('portraitPreview').innerHTML = 'No image selected';
+            document.getElementById('heroName').value = '';
+            document.getElementById('heroArchetype').value = '';
+            document.getElementById('heroDescription').value = '';
+            document.getElementById('combinedIntrosList').innerHTML = '';
+            document.getElementById('movesList').innerHTML = '';
+            alert('Hero created!');
+            loadHeroes();
+            populateHeroSelector();
+        }
+
+        // -------------------------
+        // Glitch detection — auto-removes broken heroes and notifies the user
+        // -------------------------
+        function sanitizeHeroes(gameData) {
+            const before = (gameData.heroes || []).length;
+            const removed = [];
+            gameData.heroes = (gameData.heroes || []).filter(h => {
+                // A hero is glitched if it's missing a name or id
+                if (!h || !h.id || !h.name || typeof h.name !== 'string' || !h.name.trim()) {
+                    removed.push(h ? (h.name || h.id || 'Unknown') : 'Unknown');
+                    return false;
+                }
+                // Glitched if moves is not an array or contains broken entries
+                if (!Array.isArray(h.moves)) {
+                    removed.push(h.name);
+                    return false;
+                }
+                // Glitched if every move has no name
+                if (h.moves.length > 0 && h.moves.every(m => !m || !m.name)) {
+                    removed.push(h.name);
+                    return false;
+                }
+                return true;
+            });
+            if (removed.length > 0) {
+                sessionStorage.setItem('gameData', JSON.stringify(gameData));
+                // Also save to account if logged in
+                const cu = localStorage.getItem('currentUser');
+                if (cu) {
+                    const users = JSON.parse(localStorage.getItem('arcaneUsers') || '{}');
+                    if (users[cu]) { users[cu].gameData = gameData; localStorage.setItem('arcaneUsers', JSON.stringify(users)); }
+                }
+                alert(`⚠️ The following hero${removed.length > 1 ? 'es were' : ' was'} detected as glitched and automatically removed:\n\n• ${removed.join('\n• ')}\n\nThis can happen if a hero was saved with missing or corrupted data.`);
+            }
+            return gameData;
+        }
+
+        function loadHeroes() {
+            const grid = document.getElementById('heroesGrid');
+            grid.innerHTML = '';
+            let gameData = JSON.parse(sessionStorage.getItem('gameData') || '{"heroes":[]}');
+            gameData = sanitizeHeroes(gameData);
+            const heroes = gameData.heroes || [];
+            if (heroes.length === 0) {
+                grid.innerHTML = '<p style="color:#999">No heroes yet. Create one!';
+                return;
+            }
+            heroes.forEach(h => {
+                const card = document.createElement('div');
+                card.className = 'hero-card';
+                card.innerHTML = `<h3>${escapeHtml(h.name)}</h3>
+                  <div class="hero-image"><img src="${escapeHtml(h.portrait || defaultWikiImage)}" alt="${escapeHtml(h.name)}"></div>
+                  <p>${escapeHtml(h.description || '')}</p>
+                  <div class="hero-moves"><strong>Moves</strong>
+                    ${(h.moves||[]).map(m => `<div class="move-item-display">${escapeHtml(m.name)} - ${escapeHtml(m.description||'')}</div>`).join('')}
+                  </div>
+                  <div class="hero-actions">
+                    <button class="edit-btn" onclick="openEditModal('${h.id}')">Edit</button>
+                    <button class="delete-btn" onclick="deleteHero('${h.id}')">Delete</button>
+                  </div>`;
+                grid.appendChild(card);
+            });
+        }
+
+        function deleteHero(id) {
+            if (!confirm('Delete this hero?')) return;
+            const gameData = JSON.parse(sessionStorage.getItem('gameData') || '{"heroes":[]}');
+            gameData.heroes = (gameData.heroes || []).filter(h => h.id !== id);
+            sessionStorage.setItem('gameData', JSON.stringify(gameData));
+            // Also persist deletion to localStorage for account users
+            const cu = localStorage.getItem('currentUser');
+            if (cu) {
+                const users = JSON.parse(localStorage.getItem('arcaneUsers') || '{}');
+                if (users[cu]) {
+                    users[cu].gameData = gameData;
+                    localStorage.setItem('arcaneUsers', JSON.stringify(users));
+                }
+            }
+            loadHeroes();
+            populateHeroSelector();
+        }
+
+        let editPortraitData = null;
+
+        function openEditModal(id) {
+            editingHeroId = id;
+            const gameData = JSON.parse(sessionStorage.getItem('gameData') || '{"heroes":[]}');
+            const hero = (gameData.heroes || []).find(h => h.id === id);
+            if (!hero) return alert('Hero not found.');
+            editPortraitData = null;
+
+            // Populate the edit form using the same structure as the Create Hero tab
+            document.getElementById('editHeroName').value = hero.name || '';
+            document.getElementById('editHeroArchetype').value = hero.archetype || '';
+            document.getElementById('editHeroDescription').value = hero.description || '';
+
+            // Portrait preview
+            const prev = document.getElementById('editPortraitPreview');
+            if (hero.portrait) {
+                prev.innerHTML = `<img src="${hero.portrait}" style="width:100%;height:100%;object-fit:cover;">`;
+            } else {
+                prev.innerHTML = 'No image selected';
+            }
+
+            // Intros
+            const introsList = document.getElementById('editCombinedIntrosList');
+            introsList.innerHTML = '';
+            (hero.combinedIntros || []).forEach(intro => renderIntroField(introsList, 'Combined', intro));
+
+            // Moves
+            const movesList = document.getElementById('editMovesList');
+            movesList.innerHTML = '';
+            (hero.moves || []).forEach(m => renderMoveField(movesList, m));
+
+            document.getElementById('editHeroModal').classList.add('active');
+
+            // Wire up portrait buttons
+            document.getElementById('editPortraitFileInput').onchange = e => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = ev => {
+                        editPortraitData = ev.target.result;
+                        prev.innerHTML = `<img src="${editPortraitData}" style="width:100%;height:100%;object-fit:cover;">`;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            document.getElementById('editLoadUrlBtn').onclick = () => {
+                const url = document.getElementById('editPortraitUrl').value.trim();
+                if (url) {
+                    editPortraitData = url;
+                    prev.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;">`;
+                    document.getElementById('editPortraitUrl').value = '';
+                    document.getElementById('editPortraitUrlGroup').style.display = 'none';
+                }
+            };
+
+            // Save button
+            document.getElementById('editSaveBtn').onclick = () => {
+                const newName = document.getElementById('editHeroName').value.trim();
+                if (!newName) return alert('Hero name cannot be empty.');
+                hero.name = newName;
+                hero.archetype = document.getElementById('editHeroArchetype').value.trim();
+                hero.description = document.getElementById('editHeroDescription').value.trim();
+                if (editPortraitData) hero.portrait = editPortraitData;
+                hero.combinedIntros = extractIntros('editCombinedIntrosList');
+                hero.moves = extractMoves('editMovesList');
+                hero.moves.forEach((m, idx) => { if (!m.damage || m.damage === 0) m.damage = 10 + (idx * 5); });
+                sessionStorage.setItem('gameData', JSON.stringify(gameData));
+                const cu = localStorage.getItem('currentUser');
+                if (cu) {
+                    const users = JSON.parse(localStorage.getItem('arcaneUsers') || '{}');
+                    if (users[cu]) { users[cu].gameData = gameData; localStorage.setItem('arcaneUsers', JSON.stringify(users)); }
+                }
+                closeEditModal();
+                loadHeroes();
+                populateHeroSelector();
+                alert('Hero updated!');
+            };
+        }
+
+        function closeEditModal() {
+            document.getElementById('editHeroModal').classList.remove('active');
+        }
+
+        // -------------------------
+        // Portrait fetch (Wikimedia/Wikipedia) - caches by name in sessionStorage
+        // -------------------------
+        async function fetchPortraitForName(name) {
+            if (!name) return defaultWikiImage;
+            const key = 'arcane_portrait_cache_v1';
+            let cache = {};
+            try {
+                cache = JSON.parse(sessionStorage.getItem(key) || '{}');
+            } catch (e) {
+                cache = {};
+            }
+            if (cache[name]) return cache[name];
+
+            // Try Commons search
+            try {
+                const search = encodeURIComponent(name + " character");
+                const api = `https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrsearch=${search}&gsrlimit=1&prop=imageinfo&iiprop=url`;
+                const res = await fetch(api);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.query && data.query.pages) {
+                        const pages = Object.values(data.query.pages);
+                        if (pages.length > 0) {
+                            const page = pages[0];
+                            if (page.imageinfo && page.imageinfo[0] && page.imageinfo[0].url) {
+                                const url = page.imageinfo[0].url;
+                                cache[name] = url;
+                                sessionStorage.setItem(key, JSON.stringify(cache));
+                                return url;
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                // ignore
+            }
+
+            // Try Wikipedia page image
+            try {
+                const wikiSearch = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(name)}&srlimit=1&format=json&origin=*`;
+                const r2 = await fetch(wikiSearch);
+                if (r2.ok) {
+                    const d2 = await r2.json();
+                    if (d2.query && d2.query.search && d2.query.search[0]) {
+                        const title = d2.query.search[0].title;
+                        const imgApi = `https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=pageimages&piprop=original&titles=${encodeURIComponent(title)}`;
+                        const r3 = await fetch(imgApi);
+                        if (r3.ok) {
+                            const d3 = await r3.json();
+                            const pages = d3.query && d3.query.pages;
+                            if (pages) {
+                                for (const p of Object.values(pages)) {
+                                    if (p.original && p.original.source) {
+                                        cache[name] = p.original.source;
+                                        sessionStorage.setItem(key, JSON.stringify(cache));
+                                        return p.original.source;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (e) {}
+            cache[name] = defaultWikiImage;
+            sessionStorage.setItem(key, JSON.stringify(cache));
+            return defaultWikiImage;
+        }
+
+        // -------------------------
+        // Animation/player for battle media
+        // -------------------------
+        function showBattleAnimation(media) {
+            // media: { url: string, hasAudio: boolean } or null
+            return new Promise((resolve) => {
+                const overlay = document.getElementById('battleAnimationOverlay');
+                const container = document.getElementById('battleAnimationContainer');
+                container.innerHTML = '';
+                overlay.style.display = 'flex';
+                // Block all clicks on overlay while animation plays
+                overlay.onclick = e => e.stopPropagation();
+
+                if (!media || !media.url) {
+                    // small pacing delay
+                    setTimeout(() => {
+                        overlay.style.display = 'none';
+                        resolve();
+                    }, 360);
+                    return;
+                }
+
+                const url = media.url;
+                const lower = url.split('?')[0].toLowerCase();
+
+                function finish() {
+                    setTimeout(() => {
+                        container.innerHTML = '';
+                        overlay.style.display = 'none';
+                        resolve();
+                    }, 120);
+                }
+
+                // Image/GIF
+                const isImage = lower.match(/\.(png|jpg|jpeg|gif|webp)$/);
+                const isVideo = lower.match(/\.(mp4|webm|ogg)$/) || lower.includes('youtube.com') || lower.includes('vimeo.com');
+
+                if (isImage) {
+                    const img = document.createElement('img');
+                    img.src = url;
+                    // Prevent right-click on images
+                    img.addEventListener('contextmenu', e => e.preventDefault());
+                    // GIFs: wait for load then show for 3 seconds minimum (unskippable)
+                    // Static images: 2 seconds
+                    img.onload = () => {
+                        const isGif = lower.endsWith('.gif');
+                        setTimeout(finish, isGif ? 3000 : 2000);
+                    };
+                    img.onerror = () => finish();
+                    container.appendChild(img);
+                    return;
+                }
+
+                // Video handling
+                if (isVideo) {
+                    const video = document.createElement('video');
+                    video.style.maxWidth = '90vw';
+                    video.style.maxHeight = '90vh';
+                    video.src = url;
+                    video.playsInline = true;
+                    video.controls = false;
+                    video.preload = 'auto';
+                    // Prevent right-click context menu (which exposes download/skip)
+                    video.addEventListener('contextmenu', e => e.preventDefault());
+
+                    // Always autoplay muted first, unmute after if audio requested
+                    video.muted = true;
+                    video.autoplay = true;
+                    video.play().then(() => {
+                        if (media.hasAudio) video.muted = false;
+                    }).catch(() => {
+                        // autoplay blocked — try muted fallback
+                        video.muted = true;
+                        video.play().catch(() => {});
+                    });
+
+                    container.appendChild(video);
+
+                    video.addEventListener('ended', () => finish());
+                    video.addEventListener('error', () => {
+                        const poster = video.poster || null;
+                        video.remove();
+                        if (poster) {
+                            const img = document.createElement('img');
+                            img.src = poster;
+                            container.appendChild(img);
+                            setTimeout(finish, 900);
+                        } else {
+                            finish();
+                        }
+                    });
+
+                    // Fallback if video never loads within 5 seconds
+                    let fallbackTimer = setTimeout(() => {
+                        if (video.readyState < 2) {
+                            try { video.pause(); } catch (e) {}
+                            finish();
+                        }
+                    }, 5000);
+                    video.addEventListener('playing', () => clearTimeout(fallbackTimer));
+                    return;
+                }
+
+                // Unknown: try image fallback
+                const fallbackImg = document.createElement('img');
+                fallbackImg.src = url;
+                fallbackImg.onload = () => setTimeout(finish, 1000);
+                fallbackImg.onerror = () => finish();
+                container.appendChild(fallbackImg);
+            });
+        }
+
+        // -------------------------
+        // Simple battle engine (plays animations before applying effects)
+        // -------------------------
+        let currentBattle = null;
+
+        function startFightWith(enemyChar, playerHero) {
+            // Redirect to team battle system
+            selectedTeam = [playerHero];
+            startTeamBattle();
+        }
+
+        function updateHealthBars() {
+            if (!currentBattle) return;
+            renderTeamDisplays();
+        }
+
+        function addLogEntry(text, type = 'info') {
+            const log = document.getElementById('battleLog');
+            if (!log.innerHTML) log.innerHTML = '<h3>Battle Log</h3>';
+            const div = document.createElement('div');
+            div.className = `log-entry ${type}`;
+            div.innerText = text;
+            log.appendChild(div);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        // performMove and enemyTakeTurn replaced by applyMove / startPlayerRound / runEnemyRound
+        async function performMove(actorType, moveIndex) { /* legacy stub — not used */ }
+        async function enemyTakeTurn() { /* legacy stub — not used */ }
+
+        // -------------------------------------------------------
+        // ROUND-BASED TEAM BATTLE ENGINE
+        // Each round: all living player chars attack once (player picks move for each),
+        // then all living enemy chars attack once automatically.
+        // Battle ends only when all characters on one side are at 0 HP.
+        // -------------------------------------------------------
+
+        // Applies a single move from actor to target, returns true if target died
+        async function applyMove(actor, target, move, logType) {
+            addLogEntry(`${actor.name} used ${move.name}!`, logType);
+
+            let media = null;
+            if (move.media && move.media.length > 0) media = move.media[0];
+            else if (move.conditions && move.conditions.length > 0) {
+                const cond = move.conditions[0];
+                if (cond && cond.animation) media = { url: cond.animation, hasAudio: !!cond.hasAudio };
+            }
+            try { await showBattleAnimation(media); } catch(e) {}
+
+            let missChance = 0, oneShot = false, noDamage = false;
+            let extraDamageFlat = 0, healActor = 0, forcedDamage = null;
+
+            if (move.conditions && move.conditions.length > 0) {
+                for (const cond of move.conditions) {
+                    const txt = (cond.effect || '').toLowerCase();
+                    const missMatch = txt.match(/(\d+)\s*(?:%|percent)[^\n]*miss/)
+                        || txt.match(/miss[^\n]*(\d+)\s*(?:%|percent)/)
+                        || txt.match(/(\d+)\s*(?:in|out of)\s*(\d+)[^\n]*miss/);
+                    if (missMatch) {
+                        missChance = missMatch[2]
+                            ? parseInt(missMatch[1]) / parseInt(missMatch[2])
+                            : parseInt(missMatch[1]) / 100;
+                    }
+                    if (!missMatch && /miss.*half|half.*miss|50.?50.*miss|miss.*50.?50/.test(txt)) missChance = 0.5;
+                    if (/no damage|doesn'?t? deal|deal[s]? no|do[es]* no damage|zero damage|0 damage/.test(txt)) noDamage = true;
+                    if (/one.?shot|1.?shot|insta.?kill|instant(ly)? kill|kill[s]? instantly|eliminat|knock[s]? out instantly|wipe[s]? out/.test(txt)) oneShot = true;
+                    const exactDmg = txt.match(/(?:deal[s]?|do(?:es)?)\s+(\d+)\s+damage/) || txt.match(/damage\s+of\s+(\d+)/);
+                    if (exactDmg) forcedDamage = parseInt(exactDmg[1]);
+                    const healMatch = txt.match(/(?:heal[s]?|restore[s]?|recover[s]?|gain[s]?)\s+(\d+)/);
+                    if (healMatch) healActor = parseInt(healMatch[1]);
+                    const extraMatch = txt.match(/(?:\+|extra|additional|bonus)\s*(\d+)\s*(?:extra\s*)?damage/);
+                    if (extraMatch) extraDamageFlat = parseInt(extraMatch[1]);
+                }
+            }
+
+            const missed = missChance > 0 && Math.random() < missChance;
+            if (missed) {
+                addLogEntry(`${actor.name}'s attack missed!`, 'info');
+                // show status on miss if named
+                for (const cond of (move.conditions || [])) {
+                    const statusName = (cond.requirement || '').trim();
+                    const statusEffect = (cond.effect || '').trim();
+                    const showName = cond.showName !== undefined ? cond.showName : true;
+                    const showEffect = cond.showEffect !== undefined ? cond.showEffect : true;
+                    if (cond.animation) await showBattleAnimation({ url: cond.animation, hasAudio: !!cond.hasAudio });
+                    if (statusName && showName) {
+                        addLogEntry(`${target.name} is afflicted with ${statusName}!`, logType);
+                        target.statuses = target.statuses || [];
+                        target.statuses.push({ requirement: statusName, effect: statusEffect, revealed: true, showEffect });
+                    }
+                    if (statusEffect && showEffect) addLogEntry(`${statusName ? statusName + ': ' : ''}${statusEffect}`, 'info');
+                }
+            } else {
+                if (oneShot) {
+                    target.health = 0;
+                    addLogEntry(`${actor.name} landed a one-shot on ${target.name}!`, logType);
+                } else if (!noDamage) {
+                    let damage;
+                    if (forcedDamage !== null) {
+                        damage = forcedDamage;
+                    } else {
+                        // Both sides use identical damage formula — floor at 20 so no one hits like a wet noodle
+                        const rawBase = (typeof move.damage === 'number' && move.damage > 0) ? move.damage : 20;
+                        const base = Math.max(20, rawBase);
+                        const variance = 0.85 + Math.random() * 0.3;
+                        damage = Math.max(1, Math.round(base * variance));
+                    }
+                    damage += extraDamageFlat;
+                    target.health = Math.max(0, target.health - damage);
+                    if (damage > 0) addLogEntry(`${target.name} took ${damage} damage.`, 'info');
+                }
+                if (healActor > 0) {
+                    actor.health = Math.min(actor.maxHealth, actor.health + healActor);
+                    addLogEntry(`${actor.name} recovered ${healActor} HP!`, logType);
+                }
+            }
+            renderTeamDisplays();
+            return target.health <= 0;
+        }
+
+        // Check if all members of a team are defeated
+        function teamDefeated(team) {
+            return team.every(m => m.health <= 0);
+        }
+
+        // Run all enemy attacks for one round
+        async function runEnemyRound() {
+            if (!currentBattle) return;
+            document.getElementById('turnIndicator').innerText = 'Enemy Turn...';
+            const battle = currentBattle;
+            const livingEnemies = battle.enemyTeam.filter(m => m.health > 0);
+            const livingPlayers = battle.playerTeam.filter(m => m.health > 0);
+            if (livingEnemies.length === 0 || livingPlayers.length === 0) return;
+
+            for (const enemy of livingEnemies) {
+                if (!currentBattle) return;
+                // pick a random living player target
+                const targets = battle.playerTeam.filter(m => m.health > 0);
+                if (targets.length === 0) break;
+                const target = targets[Math.floor(Math.random() * targets.length)];
+                const moveIdx = Math.floor(Math.random() * Math.max(1, enemy.moves.length));
+                const move = enemy.moves[moveIdx] || { name: 'Strike', damage: 12, description: '' };
+                await applyMove(enemy, target, move, 'enemy');
+                await new Promise(r => setTimeout(r, 400));
+                if (teamDefeated(battle.playerTeam)) {
+                    addLogEntry('Your team has been defeated! Enemy wins!', 'enemy');
+                    renderTeamDisplays();
+                    setTimeout(() => selectNewCharacter(), 3000);
+                    return;
+                }
+            }
+            // Start next player round
+            startPlayerRound();
+        }
+
+        // currentAttackerIndex tracks which player char is currently attacking this round
+        let currentAttackerIndex = 0;
+
+        function startPlayerRound() {
+            if (!currentBattle) return;
+            currentAttackerIndex = 0;
+            document.getElementById('turnIndicator').innerText = 'Your Turn';
+            promptNextPlayerAttack();
+        }
+
+        function promptNextPlayerAttack() {
+            if (!currentBattle) return;
+            const battle = currentBattle;
+            // Find next living player char starting from currentAttackerIndex
+            while (currentAttackerIndex < battle.playerTeam.length && battle.playerTeam[currentAttackerIndex].health <= 0) {
+                currentAttackerIndex++;
+            }
+            if (currentAttackerIndex >= battle.playerTeam.length) {
+                // All player chars have attacked — run enemy round
+                setTimeout(() => runEnemyRound(), 600);
+                return;
+            }
+            const attacker = battle.playerTeam[currentAttackerIndex];
+            renderRoundMoveSection(attacker);
+        }
+
+        function renderRoundMoveSection(attacker) {
+            const section = document.getElementById('roundMoveSection');
+            section.innerHTML = '';
+
+            const label = document.createElement('div');
+            label.style.cssText = 'color:#a855f7;font-weight:bold;margin-bottom:8px;font-size:15px;';
+            label.innerText = `${attacker.name} — choose a move:`;
+            section.appendChild(label);
+
+            const grid = document.createElement('div');
+            grid.className = 'move-buttons';
+            attacker.moves.forEach((m) => {
+                const btn = document.createElement('button');
+                btn.className = 'move-button';
+                btn.innerText = `${m.name}${m.description ? '\n' + m.description : ''}`;
+                btn.onclick = () => {
+                    if (!currentBattle) return;
+                    // After picking move, show target selector
+                    showTargetSelector(attacker, m);
+                };
+                grid.appendChild(btn);
+            });
+            section.appendChild(grid);
+        }
+
+        function showTargetSelector(attacker, move) {
+            const section = document.getElementById('roundMoveSection');
+            section.innerHTML = '';
+
+            const label = document.createElement('div');
+            label.style.cssText = 'color:#f59e0b;font-weight:bold;margin-bottom:10px;font-size:15px;';
+            label.innerText = `${attacker.name} used ${move.name} — pick a target:`;
+            section.appendChild(label);
+
+            const targetGrid = document.createElement('div');
+            targetGrid.style.cssText = 'display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px;';
+
+            const livingEnemies = currentBattle.enemyTeam.filter(e => e.health > 0);
+            livingEnemies.forEach(enemy => {
+                const card = document.createElement('div');
+                const hpPct = Math.max(0, (enemy.health / enemy.maxHealth) * 100);
+                card.style.cssText = 'background:rgba(100,20,20,0.6);border:2px solid #dc2626;border-radius:10px;padding:10px;min-width:110px;text-align:center;cursor:pointer;transition:all 0.2s;';
+                card.innerHTML = `
+                    <img src="${escapeHtml(enemy.portrait)}" style="width:80px;height:80px;object-fit:contain;border-radius:6px;display:block;margin:0 auto 6px;">
+                    <div style="font-size:12px;font-weight:bold;color:#fff;margin-bottom:4px;">${escapeHtml(enemy.name)}</div>
+                    <div style="background:rgba(0,0,0,0.5);border-radius:3px;height:8px;overflow:hidden;margin-bottom:2px;">
+                        <div style="height:100%;width:${hpPct}%;background:#dc2626;transition:width 0.3s;"></div>
+                    </div>
+                    <div style="font-size:10px;color:#b8a8d8;">${Math.max(0,enemy.health)} / ${enemy.maxHealth} HP</div>
+                `;
+                card.onmouseenter = () => card.style.border = '2px solid #f87171';
+                card.onmouseleave = () => card.style.border = '2px solid #dc2626';
+                card.onclick = async () => {
+                    if (!currentBattle) return;
+                    section.innerHTML = '';
+                    const battle = currentBattle;
+                    await applyMove(attacker, enemy, move, 'player');
+                    if (teamDefeated(battle.enemyTeam)) {
+                        addLogEntry('Enemy team defeated! You win!', 'player');
+                        renderTeamDisplays();
+                        setTimeout(() => selectNewCharacter(), 3000);
+                        return;
+                    }
+                    currentAttackerIndex++;
+                    promptNextPlayerAttack();
+                };
+                targetGrid.appendChild(card);
+            });
+            section.appendChild(targetGrid);
+
+            // Back button to re-pick move
+            const backBtn = document.createElement('button');
+            backBtn.style.cssText = 'background:transparent;border:1px solid #7c3aed;color:#b8a8d8;padding:6px 14px;border-radius:5px;cursor:pointer;font-size:12px;';
+            backBtn.innerText = '← Back';
+            backBtn.onclick = () => renderRoundMoveSection(attacker);
+            section.appendChild(backBtn);
+        }
+
+        function renderTeamDisplays() {
+            if (!currentBattle) return;
+            ['player', 'enemy'].forEach(side => {
+                const container = document.getElementById(`${side}TeamDisplay`);
+                if (!container) return;
+                container.innerHTML = '';
+                const team = side === 'player' ? currentBattle.playerTeam : currentBattle.enemyTeam;
+                team.forEach(m => {
+                    const card = document.createElement('div');
+                    const isDead = m.health <= 0;
+                    card.style.cssText = `background:rgba(${side === 'player' ? '20,40,100' : '100,20,20'},${isDead ? '0.2' : '0.6'});border:2px solid ${isDead ? '#555' : side === 'player' ? '#3b82f6' : '#dc2626'};border-radius:10px;padding:12px;min-width:130px;max-width:180px;opacity:${isDead ? '0.4' : '1'};text-align:center;flex:1;`;
+                    const hpPct = Math.max(0, (m.health / m.maxHealth) * 100);
+                    const hpColor = hpPct > 50 ? (side === 'player' ? '#3b82f6' : '#dc2626') : hpPct > 25 ? '#f59e0b' : '#ef4444';
+                    const statusTags = (m.statuses || []).filter(s => s.revealed && s.requirement)
+                        .map(s => `<span style="background:rgba(168,85,247,0.25);border:1px solid #a855f7;border-radius:10px;padding:1px 6px;font-size:10px;color:#d8b4fe;margin:2px;">${escapeHtml(s.requirement)}</span>`).join('');
+                    card.innerHTML = `
+                        <img src="${escapeHtml(m.portrait)}" style="width:110px;height:110px;object-fit:contain;border-radius:8px;display:block;margin:0 auto 8px;border:2px solid ${isDead ? '#555' : side === 'player' ? '#3b82f6' : '#dc2626'};">
+                        <div style="font-size:13px;font-weight:bold;color:#fff;margin-bottom:5px;">${escapeHtml(m.name)}</div>
+                        <div style="background:rgba(0,0,0,0.5);border-radius:4px;height:12px;overflow:hidden;margin-bottom:3px;">
+                            <div style="height:100%;width:${hpPct}%;background:${hpColor};transition:width 0.3s;"></div>
+                        </div>
+                        <div style="font-size:11px;color:#b8a8d8;margin-bottom:4px;">${Math.max(0,m.health)} / ${m.maxHealth} HP</div>
+                        ${statusTags ? `<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:2px;margin-top:3px;">${statusTags}</div>` : ''}
+                        ${isDead ? '<div style="font-size:11px;color:#f87171;margin-top:4px;font-weight:bold;">💀 Defeated</div>' : ''}
+                    `;
+                    container.appendChild(card);
+                });
+            });
+        }
+
+        function renderStatuses(side) {
+            // statuses now shown per-card in renderTeamDisplays — no-op for compatibility
+        }
+
+        function renderMoveButtons(enabled = true) { /* replaced by renderRoundMoveSection */ }
+        function setPlayerTurn(ready) { /* replaced by startPlayerRound/runEnemyRound */ }
+
+        // -------------------------------------------------------
+        // Team selection & battle setup
+        // -------------------------------------------------------
+        let selectedTeam = [];
+
+        function populateHeroSelector() {
+            selectedTeam = [];
+            const grid = document.getElementById('heroSelectorGrid');
+            grid.innerHTML = '';
+            document.getElementById('teamSelectedInfo').innerText = '';
+            document.getElementById('startBattleBtn').style.display = 'none';
+
+            let gameData = JSON.parse(sessionStorage.getItem('gameData') || '{"heroes":[]}');
+            gameData = sanitizeHeroes(gameData);
+            const userHeroes = gameData.heroes || [];
+            if (userHeroes.length === 0) {
+                userHeroes.push({ id: 'demo-1', name: 'Demo Hero', portrait: defaultWikiImage, moves: [{ name: 'Strike', damage: 12, description: 'Test strike' }], level: 1 });
+            }
+            userHeroes.forEach(h => {
+                const el = document.createElement('div');
+                el.className = 'hero-option';
+                el.dataset.heroId = h.id;
+                el.innerHTML = `
+                    <div style="position:relative;">
+                        ${h.portrait ? `<img src="${escapeHtml(h.portrait)}" style="width:60px;height:60px;object-fit:contain;border-radius:6px;margin-bottom:6px;display:block;margin:0 auto 6px;">` : ''}
+                        <strong style="display:block;">${escapeHtml(h.name)}</strong>
+                        <div style="font-size:11px;margin-top:3px;color:#b8a8d8;">${escapeHtml(h.archetype || '')}</div>
+                        <div class="team-check" style="display:none;position:absolute;top:-8px;right:-8px;background:#22c55e;color:white;border-radius:50%;width:20px;height:20px;font-size:12px;text-align:center;line-height:20px;">✓</div>
+                    </div>`;
+                el.onclick = () => toggleTeamMember(h, el);
+                grid.appendChild(el);
+            });
+        }
+
+        function toggleTeamMember(hero, el) {
+            const idx = selectedTeam.findIndex(h => h.id === hero.id);
+            if (idx === -1) {
+                if (selectedTeam.length >= 5) { alert('Max 5 heroes per team!'); return; }
+                selectedTeam.push(hero);
+                el.style.border = '2px solid #22c55e';
+                el.style.background = 'rgba(34,197,94,0.15)';
+                el.querySelector('.team-check').style.display = 'block';
+            } else {
+                selectedTeam.splice(idx, 1);
+                el.style.border = '2px solid #7c3aed';
+                el.style.background = '';
+                el.querySelector('.team-check').style.display = 'none';
+            }
+            const info = document.getElementById('teamSelectedInfo');
+            const btn = document.getElementById('startBattleBtn');
+            if (selectedTeam.length > 0) {
+                info.innerText = `Selected: ${selectedTeam.map(h => h.name).join(', ')} (${selectedTeam.length}/5)`;
+                btn.style.display = 'block';
+                btn.innerText = `⚔️ Fight! (${selectedTeam.length}v${selectedTeam.length})`;
+            } else {
+                info.innerText = '';
+                btn.style.display = 'none';
+            }
+        }
+
+        function buildTeamMember(heroData, teamSize) {
+            return {
+                name: heroData.name,
+                portrait: heroData.portrait || defaultWikiImage,
+                moves: (heroData.moves || [{ name: 'Strike', damage: 12, description: '' }]).map(m => ({ ...m })),
+                level: 1,
+                maxHealth: 100,
+                health: 100,
+                statuses: []
+            };
+        }
+
+        function startTeamBattle() {
+            if (selectedTeam.length === 0) return;
+            const teamSize = selectedTeam.length;
+            const playerTeam = selectedTeam.map(h => buildTeamMember(h, teamSize));
+            const shuffled = [...arenaCharacters].sort(() => Math.random() - 0.5);
+            const enemyTeam = shuffled.slice(0, teamSize).map(e => buildTeamMember(e, teamSize));
+
+            document.getElementById('teamSelectSection').style.display = 'none';
+            document.getElementById('arenaFightSection').style.display = 'block';
+            document.getElementById('battleLog').classList.add('active');
+            document.getElementById('battleLog').innerHTML = '<h3>Battle Log</h3>';
+            document.getElementById('roundMoveSection').innerHTML = '';
+
+            currentBattle = { playerTeam, enemyTeam };
+
+            renderTeamDisplays();
+            addLogEntry(`⚔️ Battle Start! ${teamSize}v${teamSize}`, 'info');
+            addLogEntry(`${playerTeam.map(m => m.name).join(', ')} vs ${enemyTeam.map(m => m.name).join(', ')}`, 'info');
+
+            // Check and play intros before starting the round
+            const enemyNames = enemyTeam.map(e => e.name.toLowerCase());
+            const allyNames = playerTeam.map(p => p.name.toLowerCase());
+
+            // Collect all matching intros across all player heroes
+            const matchingIntros = [];
+            selectedTeam.forEach(hero => {
+                if (!hero.combinedIntros) return;
+                hero.combinedIntros.forEach(intro => {
+                    const requiredOpponents = (intro.opponents || []).filter(o => o && o.trim());
+                    const requiredAllies = (intro.allies || []).filter(a => a && a.trim());
+                    // Need at least 1 name filled in
+                    if (requiredOpponents.length === 0 && requiredAllies.length === 0) return;
+                    // All filled-in opponents must match someone on the enemy team
+                    const opponentsMatch = requiredOpponents.length === 0 ||
+                        requiredOpponents.every(o => enemyNames.some(e => e.includes(o.toLowerCase()) || o.toLowerCase().includes(e)));
+                    // All filled-in allies must match someone on the player team
+                    const alliesMatch = requiredAllies.length === 0 ||
+                        requiredAllies.every(a => allyNames.some(p => p.includes(a.toLowerCase()) || a.toLowerCase().includes(p)));
+                    if (opponentsMatch && alliesMatch && intro.media && intro.media.length > 0) {
+                        matchingIntros.push({ heroName: hero.name, intro });
+                    }
+                });
+            });
+
+            if (matchingIntros.length > 0) {
+                // Play all matching intros sequentially then start the round
+                (async () => {
+                    for (const { heroName, intro } of matchingIntros) {
+                        addLogEntry(`${heroName}'s intro plays!`, 'info');
+                        for (const media of intro.media) {
+                            if (media.url) {
+                                await showBattleAnimation({ url: media.url, hasAudio: !!media.hasAudio });
+                            }
+                        }
+                    }
+                    startPlayerRound();
+                })();
+            } else {
+                startPlayerRound();
+            }
+        }
+
+        function startFightWith(enemyChar, playerHero) {
+            selectedTeam = [playerHero];
+            startTeamBattle();
+        }
+
+        async function showEnemyPickFor(playerHero) {
+            selectedTeam = [playerHero];
+            startTeamBattle();
+        }
+
+        function selectNewCharacter() {
+            currentBattle = null;
+            document.getElementById('arenaFightSection').style.display = 'none';
+            document.getElementById('roundMoveSection').innerHTML = '';
+            const log = document.getElementById('battleLog');
+            log.classList.remove('active');
+            log.innerHTML = '';
+            document.getElementById('teamSelectSection').style.display = 'block';
+            populateHeroSelector();
+        }
+
+        // -------------------------
+        // Small utilities + initialization
+        // -------------------------
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                const prefs = loadPrefs();
+                const tShow = document.getElementById('toggleShowStatusNames');
+                const tShowEff = document.getElementById('toggleShowStatusEffects');
+                if (tShow) tShow.checked = !!prefs.showStatusNames;
+                if (tShowEff) tShowEff.checked = !!prefs.showStatusEffects;
+                populateHeroSelector();
+                loadHeroes();
+            } catch (e) {}
+        });
+
+        // Expose for possible external uses
+        window.fetchPortraitForName = fetchPortraitForName;
+        window.showBattleAnimation = showBattleAnimation;
+        window.startFightWith = startFightWith;
+        window.performMove = performMove;
+        window.renderStatuses = renderStatuses;
+        window.populateHeroSelector = populateHeroSelector;
+        window.renderMoveButtons = renderMoveButtons;
+
+        function selectNewCharacterOld() { /* superseded */ }
+
+        // small beforeunload handling (preserving your earlier behavior)
+        window.addEventListener('beforeunload', function(e) {
+            if (sessionStorage.getItem('userType') === 'guest') {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+    </script>
+</body>
+
+</html>
