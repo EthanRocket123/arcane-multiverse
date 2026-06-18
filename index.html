@@ -1110,17 +1110,6 @@
             <p style="margin-top: 20px; color: #86efac; font-size: 14px; font-weight: bold;">&#9989; CREATE UNLIMITED HEROES!</p>
             <p id="dataStorageWarning" style="margin-top: 10px; color: #999; font-size: 14px;">All data is temporary and stored only in this browser session.</p>
 
-            <div class="settings-section" style="margin-top:20px;">
-                <h3 style="margin-bottom:10px;">&#128190; Export / Import Account</h3>
-                <p style="color:#999;font-size:13px;margin-bottom:12px;">Use this to move your account between browsers or devices — for example from your local file to the live website.</p>
-                <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                    <button class="file-btn" onclick="exportAccount()">&#11015;&#65039; Export My Account</button>
-                    <button class="file-btn" onclick="document.getElementById('importFileInput').click()">&#11014;&#65039; Import Account</button>
-                </div>
-                <input type="file" id="importFileInput" accept=".json" onchange="importAccount(event)" style="display:none;">
-                <div id="importExportMsg" style="font-size:13px;margin-top:8px;min-height:18px;"></div>
-            </div>
-
             <button class="logout-btn" onclick="logout()" style="margin-top: 20px;">LOGOUT NOW</button>
         </div>
     </div>
@@ -2415,8 +2404,11 @@
                 }
 
                 // Image/GIF
-                const isImage = lower.match(/\.(png|jpg|jpeg|gif|webp)$/);
-                const isVideo = lower.match(/\.(mp4|webm|ogg)$/) || lower.includes('youtube.com') || lower.includes('vimeo.com');
+                const isImage = lower.match(/\.(png|jpg|jpeg|gif|webp)$/) && !url.startsWith('blob:');
+                const isVideo = lower.match(/\.(mp4|webm|ogg)$/)
+                    || lower.includes('youtube.com')
+                    || lower.includes('vimeo.com')
+                    || url.startsWith('blob:'); // blob URLs from uploaded files are always video
 
                 if (isImage) {
                     const img = document.createElement('img');
@@ -2970,46 +2962,8 @@
 
         function selectNewCharacterOld() { /* superseded */ }
 
-        function exportAccount() {
-            const cu = localStorage.getItem('currentUser');
-            if (!cu) return alert('You must be logged in to export.');
-            const users = JSON.parse(localStorage.getItem('arcaneUsers') || '{}');
-            if (!users[cu]) return alert('Account not found.');
-            const data = { username: cu, accountData: users[cu] };
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `${cu}_arcane_account.json`;
-            a.click();
-            URL.revokeObjectURL(a.href);
-            document.getElementById('importExportMsg').style.color = '#86efac';
-            document.getElementById('importExportMsg').innerText = `Account "${cu}" exported successfully!`;
-        }
-
-        function importAccount(event) {
-            const file = event.target.files[0];
-            event.target.value = '';
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = e => {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    if (!data.username || !data.accountData) throw new Error('Invalid file format.');
-                    const users = JSON.parse(localStorage.getItem('arcaneUsers') || '{}');
-                    if (users[data.username]) {
-                        if (!confirm(`An account named "${data.username}" already exists here. Overwrite it?`)) return;
-                    }
-                    users[data.username] = data.accountData;
-                    localStorage.setItem('arcaneUsers', JSON.stringify(users));
-                    document.getElementById('importExportMsg').style.color = '#86efac';
-                    document.getElementById('importExportMsg').innerText = `Account "${data.username}" imported! You can now log in with it.`;
-                } catch (err) {
-                    document.getElementById('importExportMsg').style.color = '#f87171';
-                    document.getElementById('importExportMsg').innerText = 'Import failed — invalid file.';
-                }
-            };
-            reader.readAsText(file);
-        }
+        function exportAccount() {}
+        function importAccount(event) {}
 
         // small beforeunload handling (preserving your earlier behavior)
         window.addEventListener('beforeunload', function(e) {
