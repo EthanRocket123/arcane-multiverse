@@ -2687,12 +2687,12 @@
                     actor.health = Math.min(actor.maxHealth, actor.health + healActor);
                     addLogEntry(`${actor.name} recovered ${healActor} HP!`, logType);
                 }
-                // Apply skip-turn / stun
-                if (skipTurns > 0 && target.health > 0) {
-                    target.skippedTurns = (target.skippedTurns || 0) + skipTurns;
-                    const turnWord = skipTurns === 1 ? 'turn' : 'turns';
-                    addLogEntry(`${target.name} is stunned and will skip ${skipTurns} ${turnWord}!`, logType);
-                }
+            }
+            // Apply skip-turn / stun — always fires on hit (outside the missed block)
+            if (!missed && skipTurns > 0 && target.health > 0) {
+                target.skippedTurns = (target.skippedTurns || 0) + skipTurns;
+                const turnWord = skipTurns === 1 ? 'turn' : 'turns';
+                addLogEntry(`${target.name} is stunned and will skip ${skipTurns} ${turnWord}!`, logType);
             }
             renderTeamDisplays();
             return target.health <= 0;
