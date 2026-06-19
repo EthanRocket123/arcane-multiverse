@@ -1183,6 +1183,51 @@
         let portraitData = null;
         const defaultWikiImage = 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png';
 
+        // -------------------------
+        // IndexedDB media storage — no size limit, permanent per browser
+        // -------------------------
+        const IDB_NAME = 'ArcaneMediaDB';
+        const IDB_STORE = 'media';
+        let idb = null;
+
+        function openIDB() {
+            return new Promise((resolve, reject) => {
+                if (idb) { resolve(idb); return; }
+                const req = indexedDB.open(IDB_NAME, 1);
+                req.onupgradeneeded = e => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(IDB_STORE)) {
+                        db.createObjectStore(IDB_STORE, { keyPath: 'id' });
+                    }
+                };
+                req.onsuccess = e => { idb = e.target.result; resolve(idb); };
+                req.onerror = e => reject(e);
+            });
+        }
+
+        async function saveMediaToIDB(id, dataUrl) {
+            const db = await openIDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(IDB_STORE, 'readwrite');
+                tx.objectStore(IDB_STORE).put({ id, dataUrl });
+                tx.oncomplete = () => resolve();
+                tx.onerror = e => reject(e);
+            });
+        }
+
+        async function resolveMediaUrl(url) {
+            if (!url) return null;
+            if (!url.startsWith('idb:')) return url; // regular URL — return as-is
+            const id = url.slice(4); // strip 'idb:' prefix
+            const db = await openIDB();
+            return new Promise((resolve) => {
+                const tx = db.transaction(IDB_STORE, 'readonly');
+                const req = tx.objectStore(IDB_STORE).get(id);
+                req.onsuccess = e => resolve(e.target.result ? e.target.result.dataUrl : null);
+                req.onerror = () => resolve(null);
+            });
+        }
+
         // Use full roster you already had. For brevity I include the same array you provided.
         const arenaCharacters = [{
                 name: 'Naruto Uzumaki',
@@ -1867,14 +1912,25 @@
                 fileLabel.style.cssText = 'font-size:11px;margin-top:3px;';
                 container.appendChild(fileLabel);
             }
-            // Convert to base64 data URL — works everywhere, persists permanently, no hosting needed
-            const reader = new FileReader();
             fileLabel.style.color = '#f59e0b';
             fileLabel.textContent = '⏳ Loading ' + file.name + '...';
-            reader.onload = e => {
-                urlInput.value = e.target.result;
-                fileLabel.style.color = '#86efac';
-                fileLabel.textContent = '✅ ' + file.name + ' loaded';
+            const reader = new FileReader();
+            reader.onload = async e => {
+                try {
+                    // Generate unique key for this media file
+                    const id = 'media_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+                    // Save raw data to IndexedDB — no size limit
+                    await saveMediaToIDB(id, e.target.result);
+                    // Store just the key reference in the input — keeps localStorage small
+                    urlInput.value = 'idb:' + id;
+                    fileLabel.style.color = '#86efac';
+                    fileLabel.textContent = '✅ ' + file.name + ' saved permanently';
+                } catch (err) {
+                    // Fallback: store base64 directly if IndexedDB fails
+                    urlInput.value = e.target.result;
+                    fileLabel.style.color = '#86efac';
+                    fileLabel.textContent = '✅ ' + file.name + ' loaded (fallback)';
+                }
             };
             reader.onerror = () => {
                 fileLabel.style.color = '#f87171';
@@ -2390,7 +2446,12 @@
                     return;
                 }
 
-                const url = media.url;
+                // Resolve idb: references from IndexedDB before playing
+                let url = media.url;
+                if (url.startsWith('idb:')) {
+                    url = await resolveMediaUrl(url) || '';
+                    if (!url) { finish(); return; }
+                }
                 const lower = url.split('?')[0].toLowerCase();
 
                 function finish() {
@@ -2401,12 +2462,13 @@
                     }, 120);
                 }
 
-                // Image/GIF
-                const isImage = lower.match(/\.(png|jpg|jpeg|gif|webp)$/) && !url.startsWith('blob:');
+                // Image/GIF — check extension or data: MIME type
+                const isImage = (lower.match(/\.(png|jpg|jpeg|gif|webp)$/) || url.startsWith('data:image/')) && !url.startsWith('data:video/');
                 const isVideo = lower.match(/\.(mp4|webm|ogg)$/)
                     || lower.includes('youtube.com')
                     || lower.includes('vimeo.com')
-                    || url.startsWith('blob:'); // blob URLs from uploaded files are always video
+                    || url.startsWith('blob:')
+                    || url.startsWith('data:video/'); // base64 encoded uploaded videos
 
                 if (isImage) {
                     const img = document.createElement('img');
