@@ -1860,29 +1860,27 @@
             if (!file) return;
             const container = input.closest('.media-item');
             const urlInput = container.querySelector('.media-url');
-            // Use blob URL for videos (avoids size limits of data URLs with large MP4s)
-            const isVideo = file.type.startsWith('video/');
-            if (isVideo) {
-                // Revoke any previous blob URL stored on this input to avoid memory leaks
-                if (input._blobUrl) URL.revokeObjectURL(input._blobUrl);
-                const blobUrl = URL.createObjectURL(file);
-                input._blobUrl = blobUrl;
-                urlInput.value = blobUrl;
-                // Show a filename label next to the URL box so user knows what's loaded
-                let fileLabel = container.querySelector('.media-filename');
-                if (!fileLabel) {
-                    fileLabel = document.createElement('div');
-                    fileLabel.className = 'media-filename';
-                    fileLabel.style.cssText = 'color:#86efac;font-size:11px;margin-top:3px;';
-                    urlInput.parentNode.insertAdjacentElement('afterend', fileLabel);
-                }
-                fileLabel.textContent = '📹 ' + file.name;
-            } else {
-                // Images/GIFs use data URL as before
-                const reader = new FileReader();
-                reader.onload = e => { urlInput.value = e.target.result; };
-                reader.readAsDataURL(file);
+            let fileLabel = container.querySelector('.media-filename');
+            if (!fileLabel) {
+                fileLabel = document.createElement('div');
+                fileLabel.className = 'media-filename';
+                fileLabel.style.cssText = 'font-size:11px;margin-top:3px;';
+                container.appendChild(fileLabel);
             }
+            // Convert to base64 data URL — works everywhere, persists permanently, no hosting needed
+            const reader = new FileReader();
+            fileLabel.style.color = '#f59e0b';
+            fileLabel.textContent = '⏳ Loading ' + file.name + '...';
+            reader.onload = e => {
+                urlInput.value = e.target.result;
+                fileLabel.style.color = '#86efac';
+                fileLabel.textContent = '✅ ' + file.name + ' loaded';
+            };
+            reader.onerror = () => {
+                fileLabel.style.color = '#f87171';
+                fileLabel.textContent = '❌ Failed to load ' + file.name;
+            };
+            reader.readAsDataURL(file);
         }
 
         // -------------------------
