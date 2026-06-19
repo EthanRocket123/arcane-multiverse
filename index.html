@@ -2626,6 +2626,27 @@
                 }
             }
 
+            // Parse skip-turn / stun / freeze / can't attack effects
+            // Looks for keywords and optional turn counts like "stun for 2 turns" or "skip 1 turn"
+            let skipTurns = 0;
+            if (move.conditions && move.conditions.length > 0) {
+                for (const cond of move.conditions) {
+                    const txt = (cond.effect || '').toLowerCase();
+                    const isSkip = /skip[s]?\s*(?:a\s*)?(?:their\s*)?turn|stun[s]?(?:ned)?|can'?t?\s*attack|cannot\s*attack|loses?\s*(?:a\s*)?turn|miss(?:es)?\s*(?:a\s*)?turn|paralyz|incapacitat|immobiliz|frozen?|freeze/.test(txt);
+                    if (isSkip) {
+                        // Try to parse a number like "for 2 turns" or "2-3 turns" or "1 turn"
+                        const turnMatch = txt.match(/(\d+)\s*(?:-\s*(\d+))?\s*turns?/);
+                        if (turnMatch) {
+                            const min = parseInt(turnMatch[1]);
+                            const max = turnMatch[2] ? parseInt(turnMatch[2]) : min;
+                            skipTurns = Math.max(skipTurns, min + Math.floor(Math.random() * (max - min + 1)));
+                        } else {
+                            skipTurns = Math.max(skipTurns, 1); // default 1 turn if no number given
+                        }
+                    }
+                }
+            }
+
             const missed = missChance > 0 && Math.random() < missChance;
             if (missed) {
                 addLogEntry(`${actor.name}'s attack missed!`, 'info');
@@ -2666,6 +2687,12 @@
                     actor.health = Math.min(actor.maxHealth, actor.health + healActor);
                     addLogEntry(`${actor.name} recovered ${healActor} HP!`, logType);
                 }
+                // Apply skip-turn / stun
+                if (skipTurns > 0 && target.health > 0) {
+                    target.skippedTurns = (target.skippedTurns || 0) + skipTurns;
+                    const turnWord = skipTurns === 1 ? 'turn' : 'turns';
+                    addLogEntry(`${target.name} is stunned and will skip ${skipTurns} ${turnWord}!`, logType);
+                }
             }
             renderTeamDisplays();
             return target.health <= 0;
@@ -2687,6 +2714,13 @@
 
             for (const enemy of livingEnemies) {
                 if (!currentBattle) return;
+                // Check if this enemy is stunned / has skipped turns
+                if (enemy.skippedTurns > 0) {
+                    enemy.skippedTurns--;
+                    const remaining = enemy.skippedTurns;
+                    addLogEntry(`${enemy.name} is stunned and skips their turn!${remaining > 0 ? ` (${remaining} turn${remaining > 1 ? 's' : ''} remaining)` : ''}`, 'info');
+                    continue;
+                }
                 // pick a random living player target
                 const targets = battle.playerTeam.filter(m => m.health > 0);
                 if (targets.length === 0) break;
@@ -2729,6 +2763,15 @@
                 return;
             }
             const attacker = battle.playerTeam[currentAttackerIndex];
+            // Check if this player char is stunned
+            if (attacker.skippedTurns > 0) {
+                attacker.skippedTurns--;
+                const remaining = attacker.skippedTurns;
+                addLogEntry(`${attacker.name} is stunned and skips their turn!${remaining > 0 ? ` (${remaining} turn${remaining > 1 ? 's' : ''} remaining)` : ''}`, 'player');
+                currentAttackerIndex++;
+                promptNextPlayerAttack();
+                return;
+            }
             renderRoundMoveSection(attacker);
         }
 
@@ -2919,7 +2962,8 @@
                 level: 1,
                 maxHealth: 100,
                 health: 100,
-                statuses: []
+                statuses: [],
+                skippedTurns: 0
             };
         }
 
