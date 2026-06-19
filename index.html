@@ -2632,9 +2632,10 @@
             if (move.conditions && move.conditions.length > 0) {
                 for (const cond of move.conditions) {
                     const txt = (cond.effect || '').toLowerCase();
-                    const isSkip = /skip[s]?\s*(?:a\s*)?(?:their\s*)?turn|stun[s]?(?:ned)?|can'?t?\s*attack|cannot\s*attack|loses?\s*(?:a\s*)?turn|miss(?:es)?\s*(?:a\s*)?turn|paralyz|incapacitat|immobiliz|frozen?|freeze/.test(txt);
+                    // Match any skip/stun/freeze phrasing — very permissive
+                    const isSkip = /skip|stun|can'?t?\s*attack|cannot\s*attack|loses?\s*turn|miss.*turn|paralyz|incapacitat|immobiliz|frozen?|freeze/.test(txt);
                     if (isSkip) {
-                        // Parse any number e.g. "3 turns", "2-5 turns", "10 turns"
+                        // Parse any number e.g. "1 turn", "3 turns", "2-5 turns", "10 turns"
                         const turnMatch = txt.match(/(\d+)\s*(?:-\s*(\d+))?\s*turns?/);
                         if (turnMatch) {
                             const min = parseInt(turnMatch[1]);
