@@ -2427,9 +2427,9 @@
         // -------------------------
         // Animation/player for battle media
         // -------------------------
-        function showBattleAnimation(media) {
+        async function showBattleAnimation(media) {
             // media: { url: string, hasAudio: boolean } or null
-            return new Promise((resolve) => {
+            return new Promise(async (resolve) => {
                 const overlay = document.getElementById('battleAnimationOverlay');
                 const container = document.getElementById('battleAnimationContainer');
                 container.innerHTML = '';
