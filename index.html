@@ -2587,8 +2587,13 @@
             addLogEntry(`${actor.name} used ${move.name}!`, logType);
 
             let media = null;
-            if (move.media && move.media.length > 0 && move.media[0].url) {
-                media = { url: move.media[0].url, hasAudio: !!move.media[0].hasAudio };
+            if (move.media && move.media.length > 0) {
+                // Pick a random animation from all variants
+                const validMedia = move.media.filter(m => m && m.url);
+                if (validMedia.length > 0) {
+                    const pick = validMedia[Math.floor(Math.random() * validMedia.length)];
+                    media = { url: pick.url, hasAudio: !!pick.hasAudio };
+                }
             } else if (move.conditions && move.conditions.length > 0) {
                 const cond = move.conditions[0];
                 if (cond && cond.animation) media = { url: cond.animation, hasAudio: !!cond.hasAudio };
