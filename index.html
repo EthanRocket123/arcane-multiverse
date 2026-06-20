@@ -1937,6 +1937,7 @@
                         </div>
                         <div style="display:flex;gap:8px;flex-wrap:wrap;">
                             <button onclick="viewFriendProfile('${escapeHtml(name)}')" style="background:#3b82f6;color:white;border:none;padding:6px 12px;border-radius:5px;cursor:pointer;font-size:12px;font-weight:bold;">👤 Profile</button>
+                            <button onclick="openFriendBattle('${escapeHtml(name)}')" style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:white;border:none;padding:6px 12px;border-radius:5px;cursor:pointer;font-size:12px;font-weight:bold;">⚔️ Challenge</button>
                             <button onclick="removeFriend('${escapeHtml(name)}')" style="background:transparent;border:1px solid #dc2626;color:#f87171;padding:6px 12px;border-radius:5px;cursor:pointer;font-size:12px;">Remove</button>
                         </div>
                     </div>`;
@@ -3102,6 +3103,159 @@
             } else {
                 showCoinFlip();
             }
+        }
+
+        // -------------------------
+        // Friend battle system
+        // -------------------------
+        let friendBattleTarget = null;
+
+        function openFriendBattle(friendName) {
+            friendBattleTarget = friendName;
+            const cu = localStorage.getItem('currentUser');
+            const users = JSON.parse(localStorage.getItem('arcaneUsers') || '{}');
+            const me = users[cu];
+            const friend = users[friendName];
+            if (!friend) return alert('Friend not found.');
+            const privateHeroes = friend.privateHeroes || [];
+            const friendHeroes = ((friend.gameData && friend.gameData.heroes) || []).filter(h => !privateHeroes.includes(h.id));
+            if (friendHeroes.length === 0) return alert(friendName + ' has no public heroes to battle with!');
+            const myHeroes = (me.gameData && me.gameData.heroes) || [];
+            if (myHeroes.length === 0) return alert('You need at least 1 hero to challenge a friend!');
+
+            let modal = document.getElementById('friendBattleModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'friendBattleModal';
+                modal.style.cssText = 'display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.8);z-index:3000;overflow-y:auto;';
+                document.body.appendChild(modal);
+            }
+
+            modal.innerHTML = `
+                <div style="background:rgba(20,10,40,0.97);border:2px solid #7c3aed;border-radius:12px;max-width:700px;width:90%;margin:5% auto;padding:30px;position:relative;">
+                    <button onclick="document.getElementById('friendBattleModal').style.display='none'" style="position:absolute;top:12px;right:12px;background:#dc2626;color:white;border:none;padding:6px 14px;border-radius:5px;cursor:pointer;font-weight:bold;">Close</button>
+                    <h2 style="color:#fff;margin-bottom:6px;">⚔️ Challenge ${escapeHtml(friendName)}</h2>
+                    <p style="color:#b8a8d8;font-size:13px;margin-bottom:20px;">Pick 1–5 heroes. ${escapeHtml(friendName)}'s heroes will be the enemy team.</p>
+                    <h4 style="color:#a855f7;margin-bottom:10px;">Select Your Team</h4>
+                    <div id="friendBattleMyHeroes" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-bottom:20px;">
+                        ${myHeroes.map(h => `
+                            <div class="fb-hero-pick" data-id="${h.id}" onclick="toggleFriendBattleHero(this,'${h.id}')"
+                                style="background:rgba(20,10,40,0.7);border:2px solid #7c3aed;border-radius:8px;padding:10px;text-align:center;cursor:pointer;transition:all 0.2s;">
+                                <img src="${escapeHtml(h.portrait || defaultWikiImage)}" style="width:60px;height:60px;object-fit:contain;border-radius:6px;display:block;margin:0 auto 6px;">
+                                <div style="color:#fff;font-size:12px;font-weight:bold;">${escapeHtml(h.name)}</div>
+                                <div style="color:#b8a8d8;font-size:10px;">${escapeHtml(h.archetype || '')}</div>
+                                <div class="fb-check" style="display:none;color:#22c55e;font-size:16px;margin-top:4px;">✓</div>
+                            </div>`).join('')}
+                    </div>
+                    <div id="friendBattleSelectedInfo" style="color:#86efac;font-size:13px;margin-bottom:12px;min-height:18px;"></div>
+                    <button id="friendBattleStartBtn" onclick="startFriendBattle('${escapeHtml(friendName)}')"
+                        style="display:none;width:100%;padding:14px;background:linear-gradient(135deg,#7c3aed,#a855f7);color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;">
+                        ⚔️ Fight!
+                    </button>
+                </div>`;
+            modal.style.display = 'block';
+            window._friendBattlePicked = [];
+        }
+
+        function toggleFriendBattleHero(el, heroId) {
+            if (!window._friendBattlePicked) window._friendBattlePicked = [];
+            const idx = window._friendBattlePicked.indexOf(heroId);
+            if (idx === -1) {
+                if (window._friendBattlePicked.length >= 5) { alert('Max 5 heroes!'); return; }
+                window._friendBattlePicked.push(heroId);
+                el.style.border = '2px solid #22c55e';
+                el.style.background = 'rgba(34,197,94,0.15)';
+                el.querySelector('.fb-check').style.display = 'block';
+            } else {
+                window._friendBattlePicked.splice(idx, 1);
+                el.style.border = '2px solid #7c3aed';
+                el.style.background = 'rgba(20,10,40,0.7)';
+                el.querySelector('.fb-check').style.display = 'none';
+            }
+            const count = window._friendBattlePicked.length;
+            const info = document.getElementById('friendBattleSelectedInfo');
+            const btn = document.getElementById('friendBattleStartBtn');
+            if (count > 0) {
+                info.innerText = count + ' hero' + (count > 1 ? 'es' : '') + ' selected (' + count + 'v' + count + ')';
+                btn.style.display = 'block';
+                btn.innerText = '⚔️ Fight! (' + count + 'v' + count + ')';
+            } else {
+                info.innerText = '';
+                btn.style.display = 'none';
+            }
+        }
+
+        function startFriendBattle(friendName) {
+            const cu = localStorage.getItem('currentUser');
+            const users = JSON.parse(localStorage.getItem('arcaneUsers') || '{}');
+            const me = users[cu];
+            const friend = users[friendName];
+            if (!friend || !window._friendBattlePicked || window._friendBattlePicked.length === 0) return alert('Select at least 1 hero.');
+            const myHeroes = (me.gameData && me.gameData.heroes) || [];
+            const pickedHeroes = myHeroes.filter(h => window._friendBattlePicked.includes(h.id));
+            if (pickedHeroes.length === 0) return alert('Select at least 1 hero.');
+            const privateHeroes = friend.privateHeroes || [];
+            const friendHeroes = ((friend.gameData && friend.gameData.heroes) || []).filter(h => !privateHeroes.includes(h.id));
+            if (friendHeroes.length === 0) return alert(friendName + ' has no public heroes!');
+
+            document.getElementById('friendBattleModal').style.display = 'none';
+            switchTab('arena', document.querySelector('.tab-btn:nth-child(3)'));
+
+            isFriendBattle = true;
+            selectedTeam = pickedHeroes;
+
+            const teamSize = pickedHeroes.length;
+            const shuffledFriend = [...friendHeroes].sort(() => Math.random() - 0.5).slice(0, teamSize);
+            const playerTeam = pickedHeroes.map(h => buildTeamMember(h, teamSize));
+            const enemyTeam = shuffledFriend.map(h => buildTeamMember(h, teamSize));
+
+            document.getElementById('teamSelectSection').style.display = 'none';
+            document.getElementById('arenaFightSection').style.display = 'block';
+            document.getElementById('battleLog').classList.add('active');
+            document.getElementById('battleLog').innerHTML = '<h3>Battle Log</h3>';
+            document.getElementById('roundMoveSection').innerHTML = '';
+
+            currentBattle = { playerTeam, enemyTeam };
+            renderTeamDisplays();
+            addLogEntry('⚔️ Friend Battle! ' + cu + ' vs ' + friendName, 'info');
+            addLogEntry(playerTeam.map(m => m.name).join(', ') + ' vs ' + enemyTeam.map(m => m.name).join(', '), 'info');
+
+            const enemyNames = enemyTeam.map(e => e.name.toLowerCase());
+            const allyNames = playerTeam.map(p => p.name.toLowerCase());
+            const matchingIntros = [];
+            pickedHeroes.forEach(hero => {
+                if (!hero.combinedIntros) return;
+                hero.combinedIntros.forEach(intro => {
+                    const ro = (intro.opponents || []).filter(o => o && o.trim());
+                    const ra = (intro.allies || []).filter(a => a && a.trim());
+                    if (ro.length === 0 && ra.length === 0) return;
+                    const om = ro.length === 0 || ro.every(o => enemyNames.some(e => e.includes(o.toLowerCase()) || o.toLowerCase().includes(e)));
+                    const am = ra.length === 0 || ra.every(a => allyNames.some(p => p.includes(a.toLowerCase()) || a.toLowerCase().includes(p)));
+                    if (om && am && intro.media && intro.media.length > 0) matchingIntros.push({ heroName: hero.name, intro });
+                });
+            });
+
+            if (matchingIntros.length > 0) {
+                (async () => {
+                    for (const { heroName, intro } of matchingIntros) {
+                        addLogEntry(heroName + "'s intro plays!", 'info');
+                        for (const media of intro.media) {
+                            if (media.url) await showBattleAnimation({ url: media.url, hasAudio: !!media.hasAudio });
+                        }
+                    }
+                    await showCoinFlip();
+                })();
+            } else {
+                showCoinFlip();
+            }
+
+            // Reset isFriendBattle when battle ends
+            const _origSNC = selectNewCharacter;
+            selectNewCharacter = function() {
+                isFriendBattle = false;
+                selectNewCharacter = _origSNC;
+                _origSNC();
+            };
         }
 
         // -------------------------
