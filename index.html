@@ -3750,26 +3750,110 @@
             if (match.p1cpu && match.p2cpu) {
                 match.winner = Math.random() < 0.5 ? match.p1 : match.p2;
                 trnAdvanceMatch();
+                trnRenderBracket();
                 return;
             }
 
-            // Human involved — run a battle
+            // Human involved — show hero picker for each human player first
+            // trnPickHeroForMatch handles picking for p1 then p2 then launching the battle
+            trnPickHeroForMatch(match, null, null);
+        }
+
+        // Shows a hero picker modal for tournament players before the match
+        function trnPickHeroForMatch(match, p1Hero, p2Hero) {
+            const needP1 = !p1Hero && !match.p1cpu;
+            const needP2 = !p2Hero && !match.p2cpu;
+
+            // Assign CPU heroes automatically
+            if (!p1Hero && match.p1cpu) {
+                const ac = arenaCharacters[Math.floor(Math.random() * arenaCharacters.length)];
+                p1Hero = buildTeamMember(ac, 1);
+            }
+            if (!p2Hero && match.p2cpu) {
+                const ac = arenaCharacters[Math.floor(Math.random() * arenaCharacters.length)];
+                p2Hero = buildTeamMember(ac, 1);
+            }
+
+            // If p1 still needs to pick
+            if (!p1Hero) {
+                trnShowPickerFor(match.p1, (hero) => {
+                    trnPickHeroForMatch(match, hero, p2Hero);
+                });
+                return;
+            }
+
+            // If p2 still needs to pick
+            if (!p2Hero) {
+                trnShowPickerFor(match.p2, (hero) => {
+                    trnPickHeroForMatch(match, p1Hero, hero);
+                });
+                return;
+            }
+
+            // Both heroes picked — start the battle
+            trnLaunchMatch(match, p1Hero, p2Hero);
+        }
+
+        function trnShowPickerFor(playerName, onPick) {
             let gameData = JSON.parse(sessionStorage.getItem('gameData') || '{"heroes":[]}');
             const heroes = gameData.heroes || [];
-            const getHeroForPlayer = (pName, isCPU) => {
-                if (isCPU || heroes.length === 0) {
-                    // Pick a random arena character as their hero
-                    const ac = arenaCharacters[Math.floor(Math.random() * arenaCharacters.length)];
-                    return buildTeamMember(ac, 1);
-                }
-                // Use a random hero from the player's collection
-                const h = heroes[Math.floor(Math.random() * heroes.length)];
-                return buildTeamMember(h, 1);
+
+            let modal = document.getElementById('trnPickerModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'trnPickerModal';
+                modal.style.cssText = 'display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.85);z-index:4000;overflow-y:auto;';
+                document.body.appendChild(modal);
+            }
+
+            modal.innerHTML = `
+                <div style="background:rgba(20,10,40,0.97);border:2px solid #7c3aed;border-radius:12px;max-width:700px;width:90%;margin:5% auto;padding:30px;">
+                    <h2 style="color:#fff;margin-bottom:6px;">🏆 ${escapeHtml(playerName)} — Pick Your Hero</h2>
+                    <p style="color:#b8a8d8;font-size:13px;margin-bottom:16px;">Pass the screen to ${escapeHtml(playerName)}. Select 1 hero for this match.</p>
+                    <div id="trnPickerGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-bottom:14px;">
+                        ${heroes.length === 0 ? '<p style="color:#f87171;">No heroes available — create some first!</p>' :
+                            heroes.map(h => `
+                            <div onclick="trnSelectHero(this,'${h.id}')"
+                                style="background:rgba(20,10,40,0.7);border:2px solid #7c3aed;border-radius:8px;padding:10px;text-align:center;cursor:pointer;transition:all 0.2s;"
+                                data-hero-id="${h.id}">
+                                <img src="${escapeHtml(h.portrait || defaultWikiImage)}" style="width:60px;height:60px;object-fit:contain;border-radius:6px;display:block;margin:0 auto 6px;">
+                                <div style="color:#fff;font-size:12px;font-weight:bold;">${escapeHtml(h.name)}</div>
+                                <div style="color:#b8a8d8;font-size:10px;">${escapeHtml(h.archetype || '')}</div>
+                            </div>`).join('')}
+                    </div>
+                    <div id="trnPickerInfo" style="color:#999;font-size:13px;margin-bottom:10px;">Select a hero to continue.</div>
+                    <button id="trnPickerConfirmBtn" style="display:none;width:100%;padding:13px;background:linear-gradient(135deg,#7c3aed,#a855f7);color:white;border:none;border-radius:8px;font-size:15px;font-weight:bold;cursor:pointer;">
+                        ✅ Confirm
+                    </button>
+                </div>`;
+            modal.style.display = 'block';
+            window._trnSelectedHeroId = null;
+            window._trnOnPick = onPick;
+        }
+
+        function trnSelectHero(el, heroId) {
+            // Deselect all
+            document.querySelectorAll('#trnPickerGrid > div').forEach(d => {
+                d.style.border = '2px solid #7c3aed';
+                d.style.background = 'rgba(20,10,40,0.7)';
+            });
+            el.style.border = '2px solid #22c55e';
+            el.style.background = 'rgba(34,197,94,0.15)';
+            window._trnSelectedHeroId = heroId;
+            document.getElementById('trnPickerInfo').innerText = 'Hero selected — confirm when ready.';
+            const btn = document.getElementById('trnPickerConfirmBtn');
+            btn.style.display = 'block';
+            btn.onclick = () => {
+                const modal = document.getElementById('trnPickerModal');
+                modal.style.display = 'none';
+                let gameData = JSON.parse(sessionStorage.getItem('gameData') || '{"heroes":[]}');
+                const heroes = gameData.heroes || [];
+                const h = heroes.find(x => x.id === window._trnSelectedHeroId);
+                if (h && window._trnOnPick) window._trnOnPick(buildTeamMember(h, 1));
             };
+        }
 
-            const p1Hero = getHeroForPlayer(match.p1, match.p1cpu);
-            const p2Hero = getHeroForPlayer(match.p2, match.p2cpu);
-
+        function trnLaunchMatch(match, p1Hero, p2Hero) {
             switchTab('arena', document.querySelector('.tab-btn:nth-child(3)'));
             isFriendBattle = false;
             selectedTeam = [];
@@ -3780,11 +3864,10 @@
             document.getElementById('battleLog').innerHTML = '<h3>Battle Log</h3>';
             document.getElementById('roundMoveSection').innerHTML = '';
             renderTeamDisplays();
-            addLogEntry('🏆 Tournament Match: ' + match.p1 + ' vs ' + match.p2, 'info');
+            addLogEntry('🏆 Tournament: ' + match.p1 + ' vs ' + match.p2, 'info');
             if (!match.p1cpu) addLogEntry('Pass screen to ' + match.p1 + '!', 'info');
 
             if (match.p1cpu) {
-                // p1 is CPU, run enemy round first
                 runEnemyRound();
             } else {
                 startPlayerRound();
@@ -3793,7 +3876,6 @@
             const _orig = selectNewCharacter;
             selectNewCharacter = function() {
                 selectNewCharacter = _orig;
-                // Determine winner from battle result
                 const p1Won = currentBattle && currentBattle.enemyTeam.every(m => m.health <= 0);
                 match.winner = p1Won ? match.p1 : match.p2;
                 _orig();
