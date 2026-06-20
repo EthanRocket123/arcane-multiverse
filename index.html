@@ -898,6 +898,79 @@
             font-weight: bold;
             z-index: 2010;
         }
+
+        /* Coin flip overlay */
+        #coinFlipOverlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.85);
+            z-index: 3000;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 24px;
+        }
+        #coinFlipOverlay.active { display: flex; }
+        .coin-scene {
+            perspective: 600px;
+        }
+        .coin {
+            width: 140px;
+            height: 140px;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: coinSpin 1.8s ease-out forwards;
+        }
+        .coin-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 52px;
+            font-weight: bold;
+            border: 6px solid;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+        .coin-heads {
+            background: radial-gradient(circle at 35% 35%, #fde68a, #f59e0b, #b45309);
+            border-color: #f59e0b;
+            color: #fff;
+        }
+        .coin-tails {
+            background: radial-gradient(circle at 35% 35%, #93c5fd, #3b82f6, #1e3a8a);
+            border-color: #3b82f6;
+            color: #fff;
+            transform: rotateY(180deg);
+        }
+        @keyframes coinSpin {
+            0%   { transform: rotateY(0deg) rotateX(15deg); }
+            60%  { transform: rotateY(1440deg) rotateX(15deg); }
+            80%  { transform: rotateY(1620deg) rotateX(5deg); }
+            100% { transform: rotateY(var(--final-rot)) rotateX(0deg); }
+        }
+        .coin-result-text {
+            font-size: 28px;
+            font-weight: bold;
+            color: #fff;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            text-shadow: 0 0 20px rgba(168,85,247,0.8);
+        }
+        .coin-result-text.show { opacity: 1; }
+        .coin-sub-text {
+            font-size: 16px;
+            color: #b8a8d8;
+            opacity: 0;
+            transition: opacity 0.5s ease 0.2s;
+        }
+        .coin-sub-text.show { opacity: 1; }
     </style>
 </head>
 
@@ -2549,6 +2622,7 @@
         // Simple battle engine (plays animations before applying effects)
         // -------------------------
         let currentBattle = null;
+        let isFriendBattle = false; // set to true before startTeamBattle() for friend battles
 
         function startFightWith(enemyChar, playerHero) {
             // Redirect to team battle system
@@ -3013,7 +3087,7 @@
             });
 
             if (matchingIntros.length > 0) {
-                // Play all matching intros sequentially then start the round
+                // Play all matching intros sequentially then coin flip then start the round
                 (async () => {
                     for (const { heroName, intro } of matchingIntros) {
                         addLogEntry(`${heroName}'s intro plays!`, 'info');
@@ -3023,11 +3097,91 @@
                             }
                         }
                     }
-                    startPlayerRound();
+                    await showCoinFlip();
                 })();
             } else {
-                startPlayerRound();
+                showCoinFlip();
             }
+        }
+
+        // -------------------------
+        // Coin flip — decides who goes first (friend battles only)
+        // -------------------------
+        function showCoinFlip() {
+            return new Promise(resolve => {
+                // Skip coin flip for regular arena battles
+                if (!isFriendBattle) {
+                    startPlayerRound();
+                    resolve();
+                    return;
+                }
+                // Build overlay if it doesn't exist
+                let overlay = document.getElementById('coinFlipOverlay');
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.id = 'coinFlipOverlay';
+                    overlay.innerHTML = `
+                        <div class="coin-scene">
+                            <div class="coin" id="coinEl">
+                                <div class="coin-face coin-heads">🟡</div>
+                                <div class="coin-face coin-tails">🔵</div>
+                            </div>
+                        </div>
+                        <div class="coin-result-text" id="coinResultText"></div>
+                        <div class="coin-sub-text" id="coinSubText"></div>
+                    `;
+                    document.body.appendChild(overlay);
+                }
+
+                const heads = Math.random() < 0.5; // true = heads = player goes first
+                const resultText = document.getElementById('coinResultText');
+                const subText = document.getElementById('coinSubText');
+                const coinEl = document.getElementById('coinEl');
+
+                // Reset
+                resultText.className = 'coin-result-text';
+                subText.className = 'coin-sub-text';
+                resultText.innerText = '';
+                subText.innerText = '';
+
+                // Set final rotation — heads lands on 0/360 (front), tails on 180
+                const spins = 1440; // 4 full spins
+                const finalRot = heads ? spins : spins + 180;
+                coinEl.style.setProperty('--final-rot', finalRot + 'deg');
+
+                // Restart animation
+                coinEl.style.animation = 'none';
+                void coinEl.offsetWidth; // reflow
+                coinEl.style.animation = 'coinSpin 1.8s ease-out forwards';
+
+                overlay.classList.add('active');
+
+                // Show result after animation
+                setTimeout(() => {
+                    if (heads) {
+                        resultText.innerText = '🟡 HEADS!';
+                        subText.innerText = 'Your team goes first!';
+                        addLogEntry('🪙 Coin flip — Heads! Your team goes first!', 'player');
+                    } else {
+                        resultText.innerText = '🔵 TAILS!';
+                        subText.innerText = 'Enemy team goes first!';
+                        addLogEntry('🪙 Coin flip — Tails! Enemy team goes first!', 'enemy');
+                    }
+                    resultText.classList.add('show');
+                    subText.classList.add('show');
+
+                    // Close after showing result
+                    setTimeout(() => {
+                        overlay.classList.remove('active');
+                        if (heads) {
+                            startPlayerRound();
+                        } else {
+                            runEnemyRound();
+                        }
+                        resolve();
+                    }, 1800);
+                }, 1900);
+            });
         }
 
         function startFightWith(enemyChar, playerHero) {
