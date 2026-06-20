@@ -1066,6 +1066,13 @@
                 </div>
 
                 <div class="form-group">
+                    <label>&#127942; Victory Outros</label>
+                    <div class="list-container" id="victoryOutrosList"></div>
+                    <button class="add-btn" style="background:#f59e0b;" onclick="renderVictoryOutroField(document.getElementById('victoryOutrosList'))">+ Add Victory Outro</button>
+                    <p style="color:#999;font-size:12px;margin-top:6px;">Plays a video when your winning team defeats a specific enemy group. Fill in the defeated enemies (at least 1) — all filled names must be in the beaten team.</p>
+                </div>
+
+                <div class="form-group">
                     <label>&#9876;&#65039; Moves</label>
                     <div class="list-container" id="movesList"></div>
                     <button class="add-btn" onclick="renderMoveField(document.getElementById('movesList'))">+ Add Move</button>
@@ -1338,6 +1345,12 @@
                     <label>&#127917; Battle Intros (Combined)</label>
                     <div class="list-container" id="editCombinedIntrosList"></div>
                     <button class="add-btn" style="background:#8b5cf6;" onclick="renderIntroField(document.getElementById('editCombinedIntrosList'), 'Combined')">+ Add Battle Intro</button>
+                </div>
+                <div class="form-group">
+                    <label>&#127942; Victory Outros</label>
+                    <div class="list-container" id="editVictoryOutrosList"></div>
+                    <button class="add-btn" style="background:#f59e0b;" onclick="renderVictoryOutroField(document.getElementById('editVictoryOutrosList'))">+ Add Victory Outro</button>
+                    <p style="color:#999;font-size:12px;margin-top:6px;">Plays a video when your winning team defeats a specific enemy group.</p>
                 </div>
                 <div class="form-group">
                     <label>&#9876;&#65039; Moves</label>
@@ -2187,6 +2200,67 @@
             }
         }
 
+        function renderVictoryOutroField(container, data = null) {
+            const div = document.createElement('div');
+            div.className = 'item-card victory-outro-card';
+            div.innerHTML = `
+                <div class="item-header"><h4>&#127942; Victory Outro</h4><button type="button" class="remove-btn" onclick="this.closest('.victory-outro-card').remove()">Remove</button></div>
+                <p style="color:#f59e0b;font-size:12px;margin-bottom:8px;">Plays when your team wins — fill in defeated enemies and/or required allies (at least 1 total). All filled names must match.</p>
+                <div style="background:rgba(0,0,0,0.2);padding:10px;border-radius:5px;margin-bottom:10px;">
+                    <label style="color:#ef4444;font-size:14px;font-weight:bold;margin-bottom:8px;display:block;">Defeated Enemies</label>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                        <input type="text" class="vo-enemy" placeholder="Enemy 1" value="${(data && data.enemies && data.enemies[0]) ? escapeHtml(data.enemies[0]) : ''}">
+                        <input type="text" class="vo-enemy" placeholder="Enemy 2" value="${(data && data.enemies && data.enemies[1]) ? escapeHtml(data.enemies[1]) : ''}">
+                        <input type="text" class="vo-enemy" placeholder="Enemy 3" value="${(data && data.enemies && data.enemies[2]) ? escapeHtml(data.enemies[2]) : ''}">
+                        <input type="text" class="vo-enemy" placeholder="Enemy 4" value="${(data && data.enemies && data.enemies[3]) ? escapeHtml(data.enemies[3]) : ''}">
+                        <input type="text" class="vo-enemy" placeholder="Enemy 5" value="${(data && data.enemies && data.enemies[4]) ? escapeHtml(data.enemies[4]) : ''}">
+                    </div>
+                </div>
+                <div style="background:rgba(0,0,0,0.2);padding:10px;border-radius:5px;margin-bottom:10px;">
+                    <label style="color:#10b981;font-size:14px;font-weight:bold;margin-bottom:8px;display:block;">Required Allies <span style="color:#999;font-size:12px;font-weight:normal;">(optional)</span></label>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                        <input type="text" class="vo-ally" placeholder="Ally 1" value="${(data && data.allies && data.allies[0]) ? escapeHtml(data.allies[0]) : ''}">
+                        <input type="text" class="vo-ally" placeholder="Ally 2" value="${(data && data.allies && data.allies[1]) ? escapeHtml(data.allies[1]) : ''}">
+                        <input type="text" class="vo-ally" placeholder="Ally 3" value="${(data && data.allies && data.allies[2]) ? escapeHtml(data.allies[2]) : ''}">
+                        <input type="text" class="vo-ally" placeholder="Ally 4" value="${(data && data.allies && data.allies[3]) ? escapeHtml(data.allies[3]) : ''}">
+                        <input type="text" class="vo-ally" placeholder="Ally 5" value="${(data && data.allies && data.allies[4]) ? escapeHtml(data.allies[4]) : ''}">
+                    </div>
+                </div>
+                <div class="vo-media-list" style="margin-top:10px;"></div>
+                <button type="button" class="add-btn-small" style="background:#f59e0b;" onclick="renderMediaVariant(this.previousElementSibling)">+ Add Victory Animation Variant</button>
+            `;
+            container.appendChild(div);
+            const mediaList = div.querySelector('.vo-media-list');
+            if (data && data.media && data.media.length > 0) {
+                data.media.forEach(m => renderMediaVariant(mediaList, m));
+            }
+        }
+
+        function extractVictoryOutros(containerId) {
+            const outros = [];
+            document.querySelectorAll(`#${containerId} .victory-outro-card`).forEach(card => {
+                const enemies = [];
+                card.querySelectorAll('.vo-enemy').forEach(input => {
+                    const val = input.value.trim();
+                    if (val) enemies.push(val);
+                });
+                const allies = [];
+                card.querySelectorAll('.vo-ally').forEach(input => {
+                    const val = input.value.trim();
+                    if (val) allies.push(val);
+                });
+                if (enemies.length === 0 && allies.length === 0) return;
+                const media = [];
+                card.querySelectorAll('.vo-media-list .media-item').forEach(mCard => {
+                    const url = mCard.querySelector('.media-url').value.trim();
+                    const audio = mCard.querySelector('.media-audio').checked;
+                    if (url) media.push({ url, hasAudio: audio });
+                });
+                outros.push({ enemies, allies, media });
+            });
+            return outros;
+        }
+
         function renderConditionField(container, data = null) {
             const prefs = loadPrefs();
             const div = document.createElement('div');
@@ -2352,6 +2426,7 @@
 
             const gameData = JSON.parse(sessionStorage.getItem('gameData') || '{"heroes":[]}');
             gameData.heroes = gameData.heroes || [];
+            const victoryOutros = extractVictoryOutros('victoryOutrosList');
             const heroObj = {
                 id: 'hero-' + Date.now(),
                 name,
@@ -2359,6 +2434,7 @@
                 description,
                 portrait,
                 combinedIntros,
+                victoryOutros,
                 moves,
                 level: 1
             };
@@ -2370,6 +2446,7 @@
             document.getElementById('heroArchetype').value = '';
             document.getElementById('heroDescription').value = '';
             document.getElementById('combinedIntrosList').innerHTML = '';
+            document.getElementById('victoryOutrosList').innerHTML = '';
             document.getElementById('movesList').innerHTML = '';
             alert('Hero created!');
             loadHeroes();
@@ -2485,6 +2562,11 @@
             introsList.innerHTML = '';
             (hero.combinedIntros || []).forEach(intro => renderIntroField(introsList, 'Combined', intro));
 
+            // Victory Outros
+            const outrosList = document.getElementById('editVictoryOutrosList');
+            outrosList.innerHTML = '';
+            (hero.victoryOutros || []).forEach(outro => renderVictoryOutroField(outrosList, outro));
+
             // Moves
             const movesList = document.getElementById('editMovesList');
             movesList.innerHTML = '';
@@ -2523,6 +2605,7 @@
                 hero.description = document.getElementById('editHeroDescription').value.trim();
                 if (editPortraitData) hero.portrait = editPortraitData;
                 hero.combinedIntros = extractIntros('editCombinedIntrosList');
+                hero.victoryOutros = extractVictoryOutros('editVictoryOutrosList');
                 hero.moves = extractMoves('editMovesList');
                 hero.moves.forEach((m, idx) => { if (!m.damage || m.damage === 0) m.damage = 10 + (idx * 5); });
                 sessionStorage.setItem('gameData', JSON.stringify(gameData));
@@ -2887,6 +2970,43 @@
             return target.health <= 0;
         }
 
+        // Play victory outros if any winning hero has a matching outro for the defeated/ally conditions
+        async function playVictoryOutros(winnerTeam, loserTeam) {
+            const loserNames = loserTeam.map(m => m.name.toLowerCase());
+            const winnerNames = winnerTeam.map(m => m.name.toLowerCase());
+            const heroData = JSON.parse(sessionStorage.getItem('gameData') || '{"heroes":[]}').heroes || [];
+            const matchingOutros = [];
+            winnerTeam.forEach(winner => {
+                const heroSrc = heroData.find(h => h.name === winner.name);
+                if (!heroSrc || !heroSrc.victoryOutros) return;
+                heroSrc.victoryOutros.forEach(outro => {
+                    const requiredEnemies = (outro.enemies || []).filter(e => e && e.trim());
+                    const requiredAllies = (outro.allies || []).filter(a => a && a.trim());
+                    // Need at least 1 enemy OR 1 ally filled in
+                    if (requiredEnemies.length === 0 && requiredAllies.length === 0) return;
+                    // All filled enemies must be in the losing team
+                    const enemiesMatch = requiredEnemies.length === 0 || requiredEnemies.every(e =>
+                        loserNames.some(l => l.includes(e.toLowerCase()) || e.toLowerCase().includes(l))
+                    );
+                    // All filled allies must be in the winning team
+                    const alliesMatch = requiredAllies.length === 0 || requiredAllies.every(a =>
+                        winnerNames.some(w => w.includes(a.toLowerCase()) || a.toLowerCase().includes(w))
+                    );
+                    if (enemiesMatch && alliesMatch && outro.media && outro.media.length > 0) {
+                        matchingOutros.push({ heroName: winner.name, outro });
+                    }
+                });
+            });
+            for (const { heroName, outro } of matchingOutros) {
+                addLogEntry(`🏆 ${heroName}'s victory outro plays!`, 'player');
+                const valid = outro.media.filter(m => m && m.url);
+                if (valid.length > 0) {
+                    const pick = valid[Math.floor(Math.random() * valid.length)];
+                    try { await showBattleAnimation({ url: pick.url, hasAudio: !!pick.hasAudio }); } catch(e) {}
+                }
+            }
+        }
+
         // Check if all members of a team are defeated
         function teamDefeated(team) {
             return team.every(m => m.health <= 0);
@@ -3024,7 +3144,9 @@
                     if (teamDefeated(battle.enemyTeam)) {
                         addLogEntry('Enemy team defeated! You win!', 'player');
                         renderTeamDisplays();
-                        setTimeout(() => selectNewCharacter(), 3000);
+                        playVictoryOutros(battle.playerTeam, battle.enemyTeam).then(() => {
+                            setTimeout(() => selectNewCharacter(), 1500);
+                        });
                         return;
                     }
                     currentAttackerIndex++;
