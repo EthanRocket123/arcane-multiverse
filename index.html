@@ -2935,10 +2935,71 @@
 
             let missChance = 0, oneShot = false, noDamage = false;
             let extraDamageFlat = 0, healActor = 0, forcedDamage = null;
+            let damageMultiplier = 1;
 
             if (move.conditions && move.conditions.length > 0) {
                 for (const cond of move.conditions) {
                     const txt = (cond.effect || '').toLowerCase();
+
+                    // -------------------------------------------------------
+                    // PROBABILITY BRANCH PARSER
+                    // Handles text like:
+                    //   "80% to do x2 damage and 20% to one-shot"
+                    //   "50% chance to deal 30 damage, 50% to miss"
+                    //   "70% to stun for 2 turns, 30% to do double damage"
+                    // Each "X% to ..." clause is rolled independently.
+                    // -------------------------------------------------------
+                    const probClauses = [];
+                    // Match all "NUMBER% to/chance ..." segments
+                    const probRe = /(\d+)\s*%\s*(?:chance\s+)?(?:to\s+)?((?:(?!\d+\s*%).)+)/g;
+                    let pm;
+                    while ((pm = probRe.exec(txt)) !== null) {
+                        probClauses.push({ chance: parseInt(pm[1]) / 100, clause: pm[2].trim() });
+                    }
+
+                    if (probClauses.length > 0) {
+                        // Roll each clause independently
+                        for (const { chance, clause } of probClauses) {
+                            const rolled = Math.random() < chance;
+                            if (!rolled) continue;
+                            // What does this clause do?
+                            if (/one.?shot|1.?shot|insta.?kill|instant(ly)?\s*kill|eliminat|wipe.?out/.test(clause)) {
+                                oneShot = true;
+                            } else if (/miss/.test(clause)) {
+                                missChance = 1; // force miss
+                            } else if (/no damage|deal[s]? no|zero damage/.test(clause)) {
+                                noDamage = true;
+                            } else {
+                                // Multiplier? ×2, x2, 2x, double, triple, quadruple
+                                const multMatch = clause.match(/[x×](\d+(?:\.\d+)?)\s*damage|(\d+(?:\.\d+)?)\s*[x×]\s*damage|(\d+(?:\.\d+)?)\s*times?\s*damage/)
+                                    || clause.match(/\b(double|triple|quadruple)\b/);
+                                if (multMatch) {
+                                    const word = multMatch[4];
+                                    if (word === 'double') damageMultiplier = Math.max(damageMultiplier, 2);
+                                    else if (word === 'triple') damageMultiplier = Math.max(damageMultiplier, 3);
+                                    else if (word === 'quadruple') damageMultiplier = Math.max(damageMultiplier, 4);
+                                    else {
+                                        const n = parseFloat(multMatch[1] || multMatch[2] || multMatch[3]);
+                                        if (!isNaN(n)) damageMultiplier = Math.max(damageMultiplier, n);
+                                    }
+                                } else {
+                                    // Exact damage in clause?
+                                    const edm = clause.match(/(?:deal[s]?|do(?:es)?)\s+(\d+)\s+damage/) || clause.match(/(\d+)\s+damage/);
+                                    if (edm) forcedDamage = parseInt(edm[1]);
+                                    // Heavy/massive/extreme in clause
+                                    if (/\bheavy\b|\bmassive\b|\bdevastating\b|\bextreme\b|\boverwhelming\b|\bcatastrophic\b/.test(clause)) {
+                                        damageMultiplier = Math.max(damageMultiplier, 3);
+                                    }
+                                }
+                            }
+                        }
+                        // Skip the rest of the normal parsing for this condition since we handled it via probability
+                        continue;
+                    }
+
+                    // -------------------------------------------------------
+                    // NORMAL (non-probability) PARSING
+                    // -------------------------------------------------------
                     const missMatch = txt.match(/(\d+)\s*(?:%|percent)[^\n]*miss/)
                         || txt.match(/miss[^\n]*(\d+)\s*(?:%|percent)/)
                         || txt.match(/(\d+)\s*(?:in|out of)\s*(\d+)[^\n]*miss/);
@@ -2950,13 +3011,37 @@
                     if (!missMatch && /miss.*half|half.*miss|50.?50.*miss|miss.*50.?50/.test(txt)) missChance = 0.5;
                     if (/no damage|doesn'?t? deal|deal[s]? no|do[es]* no damage|zero damage|0 damage/.test(txt)) noDamage = true;
                     if (/one.?shot|1.?shot|insta.?kill|instant(ly)? kill|kill[s]? instantly|eliminat|knock[s]? out instantly|wipe[s]? out/.test(txt)) oneShot = true;
+
+                    // Exact damage
                     const exactDmg = txt.match(/(?:deal[s]?|do(?:es)?)\s+(\d+)\s+damage/) || txt.match(/damage\s+of\s+(\d+)/);
                     if (exactDmg) forcedDamage = parseInt(exactDmg[1]);
+
+                    // Heal
                     const healMatch = txt.match(/(?:heal[s]?|restore[s]?|recover[s]?|gain[s]?)\s+(\d+)/);
                     if (healMatch) healActor = parseInt(healMatch[1]);
+
+                    // Extra flat damage
                     const extraMatch = txt.match(/(?:\+|extra|additional|bonus)\s*(\d+)\s*(?:extra\s*)?damage/);
                     if (extraMatch) extraDamageFlat = parseInt(extraMatch[1]);
-                    // Multiplier damage keywords removed
+
+                    // Inline multiplier (not inside a probability clause)
+                    const inlineMult = txt.match(/[x×](\d+(?:\.\d+)?)\s*damage|(\d+(?:\.\d+)?)\s*[x×]\s*damage/)
+                        || txt.match(/\b(double|triple|quadruple)\b.*damage/);
+                    if (inlineMult && !exactDmg) {
+                        const word = inlineMult[3];
+                        if (word === 'double') damageMultiplier = Math.max(damageMultiplier, 2);
+                        else if (word === 'triple') damageMultiplier = Math.max(damageMultiplier, 3);
+                        else if (word === 'quadruple') damageMultiplier = Math.max(damageMultiplier, 4);
+                        else {
+                            const n = parseFloat(inlineMult[1] || inlineMult[2]);
+                            if (!isNaN(n)) damageMultiplier = Math.max(damageMultiplier, n);
+                        }
+                    }
+
+                    // Heavy/massive/devastating/extreme damage keywords — just do a lot of damage (3× base, no cap)
+                    if (!exactDmg && /\bheavy\s+damage\b|\bmassive\s+damage\b|\bdevastating\s+damage\b|\bextreme\s+damage\b|\boverwhelming\s+damage\b|\bcatastrophic\s+damage\b/.test(txt)) {
+                        damageMultiplier = Math.max(damageMultiplier, 3);
+                    }
                 }
             }
 
@@ -3012,7 +3097,7 @@
                         const rawBase = (typeof move.damage === 'number' && move.damage > 0) ? move.damage : 20;
                         const base = Math.max(20, rawBase);
                         const variance = 0.85 + Math.random() * 0.3;
-                        damage = Math.max(1, Math.round(base * variance));
+                        damage = Math.max(1, Math.round(base * variance * damageMultiplier));
                     }
                     damage += extraDamageFlat;
                     target.health = Math.max(0, target.health - damage);
@@ -4405,7 +4490,8 @@
             ],
             status: [
                 "Status effects are typed in the **Effect Description** field of a move's Condition/Effect card.",
-                "**Damage keywords**: 'deals 30 damage' (exact), 'heavy damage' (2x), 'light damage' (0.5x), 'massive damage' (2x), 'extreme damage' (3x).",
+                "**Damage keywords**: 'deals 30 damage' (exact), 'heavy/massive/extreme damage' (3× base, no cap), 'x2 damage' (double), 'double damage' (double).",
+                "**Probability branches**: '80% to do x2 damage and 20% to one-shot' — each clause is rolled independently!",
                 "**Healing**: 'heals 20 HP', 'restores 15 HP', 'recovers 10 HP' — heals the attacker!",
                 "**Stuns**: 'stunned for 3 turns', 'skips 2 turns', 'frozen for 1 turn', 'paralyzed' — skips target turns!",
                 "**Miss chance**: '50% to miss', '30% chance to miss', 'miss half the time'.",
