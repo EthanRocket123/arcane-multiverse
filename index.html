@@ -1304,8 +1304,70 @@
             <p id="dataStorageWarning" style="margin-top: 10px; color: #999; font-size: 14px;">All data is temporary and stored only in this browser session.</p>
 
             <button class="logout-btn" onclick="logout()" style="margin-top: 20px;">LOGOUT NOW</button>
+
+            <!-- Help Menu -->
+            <div class="settings-section" style="margin-top:20px;">
+                <h3 style="margin-bottom:14px;">&#128218; Help &amp; Tutorials</h3>
+                <p style="color:#b8a8d8;font-size:13px;margin-bottom:14px;">Click any topic to have Slimey walk you through it!</p>
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                    <button onclick="slimeyTutorial('create')" style="background:rgba(60,20,100,0.5);border:1px solid #7c3aed;color:#e0e0e0;padding:12px 16px;border-radius:8px;text-align:left;cursor:pointer;font-size:14px;">🟢 Creating Heroes — names, portraits, moves &amp; conditions</button>
+                    <button onclick="slimeyTutorial('battle')" style="background:rgba(60,20,100,0.5);border:1px solid #7c3aed;color:#e0e0e0;padding:12px 16px;border-radius:8px;text-align:left;cursor:pointer;font-size:14px;">⚔️ Arena Battles — how to fight, pick moves &amp; targets</button>
+                    <button onclick="slimeyTutorial('intros')" style="background:rgba(60,20,100,0.5);border:1px solid #7c3aed;color:#e0e0e0;padding:12px 16px;border-radius:8px;text-align:left;cursor:pointer;font-size:14px;">🎭 Battle Intros &amp; Victory Outros — cinematic triggers</button>
+                    <button onclick="slimeyTutorial('status')" style="background:rgba(60,20,100,0.5);border:1px solid #7c3aed;color:#e0e0e0;padding:12px 16px;border-radius:8px;text-align:left;cursor:pointer;font-size:14px;">✨ Status Effects — damage text, stuns, heals &amp; keywords</button>
+                    <button onclick="slimeyTutorial('friends')" style="background:rgba(60,20,100,0.5);border:1px solid #7c3aed;color:#e0e0e0;padding:12px 16px;border-radius:8px;text-align:left;cursor:pointer;font-size:14px;">👥 Friends &amp; Friend Battles — add friends, challenge them</button>
+                    <button onclick="slimeyTutorial('dbr')" style="background:rgba(60,20,100,0.5);border:1px solid #7c3aed;color:#e0e0e0;padding:12px 16px;border-radius:8px;text-align:left;cursor:pointer;font-size:14px;">🌍 Dimensional Battle Royale — rooms, 5 players, last one standing</button>
+                    <button onclick="slimeyTutorial('tournament')" style="background:rgba(60,20,100,0.5);border:1px solid #7c3aed;color:#e0e0e0;padding:12px 16px;border-radius:8px;text-align:left;cursor:pointer;font-size:14px;">🏆 Legendary Tournament — brackets, CPU &amp; human players</button>
+                </div>
+            </div>
         </div>
     </div>
+
+    <!-- Slimey the Helper -->
+    <div id="slimeyOverlay" style="display:none;position:fixed;bottom:0;left:0;width:100vw;height:100vh;z-index:9000;pointer-events:none;">
+        <!-- Slimey character -->
+        <div id="slimeyChar" style="position:absolute;bottom:20px;left:30px;pointer-events:all;cursor:pointer;" onclick="slimeyNext()">
+            <svg width="90" height="90" viewBox="0 0 90 90" style="filter:drop-shadow(0 4px 16px rgba(220,38,38,0.6));animation:slimeyBounce 1.2s ease-in-out infinite;">
+                <!-- Round red body -->
+                <circle cx="45" cy="47" r="38" fill="#e63535" stroke="#991b1b" stroke-width="3"/>
+                <!-- Subtle shine highlight -->
+                <ellipse cx="30" cy="28" rx="10" ry="6" fill="rgba(255,255,255,0.25)" transform="rotate(-20 30 28)"/>
+                <!-- Left eye (white oval + black pupil) -->
+                <ellipse cx="33" cy="44" rx="8" ry="11" fill="white" stroke="#1a1a1a" stroke-width="2.5"/>
+                <ellipse cx="33" cy="46" rx="4.5" ry="6" fill="#1a1a1a"/>
+                <circle cx="35" cy="42" r="1.8" fill="white"/>
+                <!-- Right eye (white oval + black pupil) -->
+                <ellipse cx="57" cy="44" rx="8" ry="11" fill="white" stroke="#1a1a1a" stroke-width="2.5"/>
+                <ellipse cx="57" cy="46" rx="4.5" ry="6" fill="#1a1a1a"/>
+                <circle cx="59" cy="42" r="1.8" fill="white"/>
+                <!-- Smile -->
+                <path d="M 34 63 Q 45 72 56 63" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            </svg>
+            <div style="text-align:center;color:#fca5a5;font-size:10px;font-weight:bold;margin-top:2px;">Slimey</div>
+        </div>
+        <!-- Speech bubble -->
+        <div id="slimeySpeech" style="position:absolute;bottom:115px;left:20px;background:rgba(40,10,10,0.97);border:2px solid #e63535;border-radius:14px;padding:14px 18px;max-width:320px;min-width:220px;pointer-events:all;display:none;">
+            <div style="position:absolute;bottom:-14px;left:28px;width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:14px solid #e63535;"></div>
+            <div style="position:absolute;bottom:-11px;left:30px;width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:12px solid rgba(40,10,10,0.97);"></div>
+            <p id="slimeyText" style="color:#e0e0e0;font-size:13px;margin:0 0 10px;line-height:1.5;"></p>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span id="slimeyStep" style="color:#fca5a5;font-size:11px;"></span>
+                <div style="display:flex;gap:8px;">
+                    <button onclick="slimeyClose()" style="background:transparent;border:1px solid #dc2626;color:#f87171;padding:4px 10px;border-radius:5px;cursor:pointer;font-size:12px;">✕ Close</button>
+                    <button onclick="slimeyNext()" style="background:#e63535;border:none;color:white;padding:4px 12px;border-radius:5px;cursor:pointer;font-size:12px;font-weight:bold;">Next ▶</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes slimeyBounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            40% { transform: translateY(-10px) scale(1.05); }
+            60% { transform: translateY(-5px) scale(0.97); }
+        }
+        #slimeyChar svg { transition: transform 0.1s; }
+        #slimeyChar:hover svg { transform: scale(1.12); }
+    </style>
 
     <div id="editHeroModal" class="modal">
         <div class="modal-content">
@@ -2894,6 +2956,7 @@
                     if (healMatch) healActor = parseInt(healMatch[1]);
                     const extraMatch = txt.match(/(?:\+|extra|additional|bonus)\s*(\d+)\s*(?:extra\s*)?damage/);
                     if (extraMatch) extraDamageFlat = parseInt(extraMatch[1]);
+                    // Multiplier damage keywords removed
                 }
             }
 
@@ -2942,10 +3005,10 @@
                     addLogEntry(`${actor.name} landed a one-shot on ${target.name}!`, logType);
                 } else if (!noDamage) {
                     let damage;
-                    if (forcedDamage !== null) {
+                    if (forcedDamage !== null && forcedDamage > 0) {
                         damage = forcedDamage;
                     } else {
-                        // Both sides use identical damage formula — floor at 20 so no one hits like a wet noodle
+                        // Standard damage formula — floor at 20 with ±15% variance
                         const rawBase = (typeof move.damage === 'number' && move.damage > 0) ? move.damage : 20;
                         const base = Math.max(20, rawBase);
                         const variance = 0.85 + Math.random() * 0.3;
@@ -4311,6 +4374,123 @@
                 loadHeroes();
             } catch (e) {}
         });
+
+        // -------------------------
+        // Slimey the Helper
+        // -------------------------
+        const SLIMEY_TUTORIALS = {
+            create: [
+                "Hey! I'm Slimey! 👋 Let's learn how to make a hero! Head to the **Create Hero** tab.",
+                "First, give your hero a **Name** and **Archetype** (like Warrior or Mage). Add a description too!",
+                "Add a **Portrait** — either upload from your PC or paste an image URL from the internet.",
+                "Now add **Moves**! Click '+ Add Move', give it a name and description.",
+                "Each move can have a **Condition/Effect** — type things like 'deals 30 damage', 'heals 15 HP', 'heavy damage', or 'stunned for 2 turns'.",
+                "Hit **Create Hero** when you're done. Your hero is saved and ready to fight! 🎉"
+            ],
+            battle: [
+                "Time to fight! Go to the **Arena** tab. Click your heroes to add them to your team (up to 5).",
+                "Click **Fight!** to start. The battle shows enemy team at top, your team at bottom.",
+                "On your turn, **pick a move** for each hero — then click which enemy to target!",
+                "After all your heroes attack, the **enemy team attacks automatically**.",
+                "The battle ends when all heroes on one side reach 0 HP. Win to return to team select!",
+                "Tip: enemies also have HP bars and can be stunned with the right moves! 💪"
+            ],
+            intros: [
+                "**Battle Intros** play a video at the START of a fight when specific characters meet.",
+                "Go to Create/Edit Hero → **Battle Intros** → Add Battle Intro.",
+                "Fill in **Target Opponents** (must be on enemy team) and/or **Involved Allies** (must be on your team).",
+                "Add an animation (MP4/GIF) using '+ Add Random Animation Variant'. Multiple variants play randomly!",
+                "**Victory Outros** work the same but play AFTER you WIN. Fill in Defeated Enemies and/or Required Allies.",
+                "Leave names blank that don't matter — only FILLED names need to match! 🎬"
+            ],
+            status: [
+                "Status effects are typed in the **Effect Description** field of a move's Condition/Effect card.",
+                "**Damage keywords**: 'deals 30 damage' (exact), 'heavy damage' (2x), 'light damage' (0.5x), 'massive damage' (2x), 'extreme damage' (3x).",
+                "**Healing**: 'heals 20 HP', 'restores 15 HP', 'recovers 10 HP' — heals the attacker!",
+                "**Stuns**: 'stunned for 3 turns', 'skips 2 turns', 'frozen for 1 turn', 'paralyzed' — skips target turns!",
+                "**Miss chance**: '50% to miss', '30% chance to miss', 'miss half the time'.",
+                "**One-shot**: 'one-shot', 'instantly kill', 'eliminate' — KOs the target immediately! 💥"
+            ],
+            friends: [
+                "Friends lets you connect with other accounts on the same browser!",
+                "Go to the **Friends tab** → type an exact username → click Add to send a request.",
+                "The other player accepts the request from their Friends tab. Now you're friends! 👥",
+                "Click **⚔️ Challenge** on any friend to start a **Friend Battle** — you pick your heroes, they use their public heroes.",
+                "Friend battles have a **coin flip** at the start — heads = you go first, tails = friend goes first!",
+                "Use 🔒 to make individual heroes **Private** so friends can't see them in your profile."
+            ],
+            dbr: [
+                "**Dimensional Battle Royale** is a pass-and-play mode for up to 5 players on one screen!",
+                "Go to 🌍 **Battle Royale** → Create a Room with a name and optional password.",
+                "Other players join using the room name. Host can click **Fill with CPU** for AI opponents.",
+                "Once everyone joins, **Start** → each player picks **3 heroes** by passing the screen.",
+                "A coin flip determines turn order. Each round, a player fights a random opponent.",
+                "Lose all 3 heroes and you're **eliminated**. Last player standing wins! 🏆"
+            ],
+            tournament: [
+                "**Legendary Tournament** is a single-elimination bracket for 4–64 players (human or CPU)!",
+                "Go to 🏆 **Tournament** → Create a Tournament, set the size (4/8/16/32/64 players).",
+                "Other players join by name + password. Host can **Fill Remaining with CPU** bots.",
+                "Click **Start Tournament** — the bracket generates automatically with random seeding.",
+                "Each match: human players pick their hero, CPU players auto-pick. **Play Next Match** to run each fight.",
+                "CPU vs CPU matches simulate instantly. Winners advance until one **Champion** remains! 👑"
+            ]
+        };
+
+        let slimeyQueue = [];
+        let slimeyIdx = 0;
+
+        function slimeyTutorial(topic) {
+            slimeyQueue = SLIMEY_TUTORIALS[topic] || [];
+            slimeyIdx = 0;
+            if (slimeyQueue.length === 0) return;
+            document.getElementById('slimeyOverlay').style.display = 'block';
+            slimeyShow();
+        }
+
+        function slimeyShow() {
+            const bubble = document.getElementById('slimeySpeech');
+            const text = document.getElementById('slimeyText');
+            const step = document.getElementById('slimeyStep');
+            bubble.style.display = 'block';
+            // Convert **bold** markdown to <strong>
+            const raw = slimeyQueue[slimeyIdx] || '';
+            text.innerHTML = raw.replace(/\*\*(.+?)\*\*/g, '<strong style="color:#fca5a5;">$1</strong>');
+            step.innerText = (slimeyIdx + 1) + ' / ' + slimeyQueue.length;
+        }
+
+        function slimeyNext() {
+            slimeyIdx++;
+            if (slimeyIdx >= slimeyQueue.length) {
+                slimeyClose();
+                return;
+            }
+            slimeyShow();
+        }
+
+        function slimeyClose() {
+            document.getElementById('slimeyOverlay').style.display = 'none';
+            document.getElementById('slimeySpeech').style.display = 'none';
+            slimeyQueue = [];
+            slimeyIdx = 0;
+        }
+
+        // Show Slimey welcome on first ever visit
+        (function() {
+            if (!localStorage.getItem('slimeyWelcomed')) {
+                localStorage.setItem('slimeyWelcomed', '1');
+                setTimeout(() => {
+                    slimeyQueue = [
+                        "Hi! I'm **Slimey** — your guide to Arcane Multiverse! �",
+                        "I can help you learn how everything works. Just go to **Settings → Help & Tutorials** to pick a topic!",
+                        "Or click on me anytime to continue where we left off. Let's get started!"
+                    ];
+                    slimeyIdx = 0;
+                    document.getElementById('slimeyOverlay').style.display = 'block';
+                    slimeyShow();
+                }, 2000);
+            }
+        })();
 
         // Expose for possible external uses
         window.fetchPortraitForName = fetchPortraitForName;
