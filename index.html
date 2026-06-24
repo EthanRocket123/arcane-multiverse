@@ -878,18 +878,18 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            width: 90vw;
-            height: 90vh;
+            width: 100vw;
+            height: 100vh;
         }
 
         #battleAnimationContainer video,
         #battleAnimationContainer img {
-            width: 90vw;
-            height: 90vh;
+            width: 100vw;
+            height: 100vh;
             object-fit: contain;
-            border-radius: 10px;
-            border: 3px solid #a855f7;
-            box-shadow: 0 0 30px rgba(168, 85, 247, 0.6);
+            border-radius: 0;
+            border: none;
+            box-shadow: none;
         }
 
         /* small play button overlay for manual start fallback */
@@ -2830,8 +2830,8 @@
                 // Video handling
                 if (isVideo) {
                     const video = document.createElement('video');
-                    video.style.width = '90vw';
-                    video.style.height = '90vh';
+                    video.style.width = '100vw';
+                    video.style.height = '100vh';
                     video.style.objectFit = 'contain';
                     video.src = url;
                     video.playsInline = true;
