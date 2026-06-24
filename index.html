@@ -2933,7 +2933,7 @@
             }
             try { await showBattleAnimation(media); } catch(e) {}
 
-            let missChance = 0, oneShot = false, noDamage = false;
+            let missChance = 0, oneShot = false, noDamage = false, selfKO = false;
             let extraDamageFlat = 0, healActor = 0, forcedDamage = null;
             let damageMultiplier = 1;
 
@@ -2965,6 +2965,8 @@
                             // What does this clause do?
                             if (/one.?shot|1.?shot|insta.?kill|instant(ly)?\s*kill|eliminat|wipe.?out/.test(clause)) {
                                 oneShot = true;
+                            } else if (/self.?ko|self.?destruct|oneshot.*self|one.?shot.*self|1.?shot.*self|ko[s]?\s*yourself|ko[s]?\s*the\s*user|1.?shot[s]?\s*yourself|oneshot[s]?\s*yourself|kills?\s*yourself|kills?\s*the\s*user|faints?\s*yourself|faints?\s*the\s*user/.test(clause)) {
+                                selfKO = true;
                             } else if (/miss/.test(clause)) {
                                 missChance = 1; // force miss
                             } else if (/no damage|deal[s]? no|zero damage/.test(clause)) {
@@ -3011,6 +3013,7 @@
                     if (!missMatch && /miss.*half|half.*miss|50.?50.*miss|miss.*50.?50/.test(txt)) missChance = 0.5;
                     if (/no damage|doesn'?t? deal|deal[s]? no|do[es]* no damage|zero damage|0 damage/.test(txt)) noDamage = true;
                     if (/one.?shot|1.?shot|insta.?kill|instant(ly)? kill|kill[s]? instantly|eliminat|knock[s]? out instantly|wipe[s]? out/.test(txt)) oneShot = true;
+                    if (/self.?ko|self.?destruct|oneshot.*self|one.?shot.*self|1.?shot.*self|ko[s]?\s*yourself|ko[s]?\s*the\s*user|1.?shot[s]?\s*yourself|oneshot[s]?\s*yourself|kills?\s*yourself|kills?\s*the\s*user|faints?\s*yourself|faints?\s*the\s*user/.test(txt)) selfKO = true;
 
                     // Exact damage
                     const exactDmg = txt.match(/(?:deal[s]?|do(?:es)?)\s+(\d+)\s+damage/) || txt.match(/damage\s+of\s+(\d+)/);
@@ -3107,6 +3110,12 @@
                     actor.health = Math.min(actor.maxHealth, actor.health + healActor);
                     addLogEntry(`${actor.name} recovered ${healActor} HP!`, logType);
                 }
+                // Self-KO: the move 1-shots the user after attacking
+                if (selfKO) {
+                    actor.health = 0;
+                    addLogEntry(`${actor.name} is taken out by their own attack!`, logType);
+                    renderTeamDisplays();
+                }
             }
             // Apply skip-turn / stun — always fires on hit (outside the missed block)
             if (!missed && skipTurns > 0 && target.health > 0) {
@@ -3167,7 +3176,13 @@
             const battle = currentBattle;
             const livingEnemies = battle.enemyTeam.filter(m => m.health > 0);
             const livingPlayers = battle.playerTeam.filter(m => m.health > 0);
-            if (livingEnemies.length === 0 || livingPlayers.length === 0) return;
+            if (livingEnemies.length === 0) return; // enemy win already handled
+            if (livingPlayers.length === 0) {
+                addLogEntry('Your team has been defeated! Enemy wins!', 'enemy');
+                renderTeamDisplays();
+                setTimeout(() => selectNewCharacter(), 3000);
+                return;
+            }
 
             for (const enemy of livingEnemies) {
                 if (!currentBattle) return;
@@ -3190,6 +3205,14 @@
                     addLogEntry('Your team has been defeated! Enemy wins!', 'enemy');
                     renderTeamDisplays();
                     setTimeout(() => selectNewCharacter(), 3000);
+                    return;
+                }
+                if (teamDefeated(battle.enemyTeam)) {
+                    addLogEntry('Enemy team defeated themselves! You win!', 'player');
+                    renderTeamDisplays();
+                    playVictoryOutros(battle.playerTeam, battle.enemyTeam).then(() => {
+                        setTimeout(() => selectNewCharacter(), 1500);
+                    });
                     return;
                 }
             }
@@ -3295,6 +3318,12 @@
                         playVictoryOutros(battle.playerTeam, battle.enemyTeam).then(() => {
                             setTimeout(() => selectNewCharacter(), 1500);
                         });
+                        return;
+                    }
+                    if (teamDefeated(battle.playerTeam)) {
+                        addLogEntry('Your team has been defeated! Enemy wins!', 'enemy');
+                        renderTeamDisplays();
+                        setTimeout(() => selectNewCharacter(), 3000);
                         return;
                     }
                     currentAttackerIndex++;
