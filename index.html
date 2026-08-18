@@ -6522,7 +6522,9 @@
 
             // Assign gimmicks
             const gimmickKeys = Object.keys(_voidGimmicks);
-            const numGimmicks = isBoss ? 3 : isMiniBoss ? 1 : (Math.random() < 0.25 ? 1 : 0);
+            // Normal enemies only get gimmicks very late (battle 75+, 15% chance) or never before that
+            const normalGimmickChance = battleNum >= 75 ? 0.15 : 0;
+            const numGimmicks = isBoss ? 3 : isMiniBoss ? 1 : (Math.random() < normalGimmickChance ? 1 : 0);
             const shuffledG = gimmickKeys.slice().sort(() => Math.random() - 0.5);
             const assignedGimmicks = shuffledG.slice(0, numGimmicks);
 
