@@ -1767,11 +1767,12 @@
                     margin: 0;
                 }
                 .vrest-grid {
-                    display: grid;
-                    grid-template-columns: repeat(3, 1fr);
-                    gap: 14px;
-                    max-width: 380px;
+                    display: block;
+                    position: relative;
+                    height: 380px;
+                    max-width: 420px;
                     width: 100%;
+                    margin: 0 auto;
                 }
                 .vrest-tile {
                     aspect-ratio: 1;
@@ -5864,11 +5865,28 @@
                     </div>`;
             });
 
+            // Resolve starter/escape hero portrait
+            let escapePortrait = escapeHero ? (escapeHero.portrait || '') : '';
+            if (escapePortrait.startsWith('idb:')) escapePortrait = (await resolveMediaUrl(escapePortrait)) || '';
+            const escapeName = escapeHero ? escapeHero.name : '';
+
+            const escapeCard = escapeName ? `
+                <div id="vcEscapeHero" style="position:absolute;bottom:24px;right:24px;display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0;transition:opacity 0.8s ease;">
+                    <div style="width:72px;height:72px;border-radius:50%;border:3px solid #a855f7;background:#2d1550;overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(168,85,247,0.6);">
+                        ${escapePortrait
+                            ? `<img src="${escapePortrait}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='🧙';this.parentElement.style.fontSize='28px';">`
+                            : `<span style="font-size:28px;">🧙</span>`}
+                    </div>
+                    <div style="color:#d8b4fe;font-size:11px;font-weight:bold;text-shadow:0 0 8px rgba(168,85,247,0.8);text-align:center;max-width:80px;">${escapeName}</div>
+                    <div style="color:#86efac;font-size:9px;letter-spacing:2px;text-transform:uppercase;">escaped</div>
+                </div>` : '';
+
             return `
                 ${stars}
                 <div class="vc-ground"></div>
                 <div class="vc-stage" id="vcStage">${heroHTML}</div>
-                <div class="vc-text" id="vcText"></div>`;
+                <div class="vc-text" id="vcText"></div>
+                ${escapeCard}`;
         }
 
         function _runVoidCinematic(overlay, heroes, starter, onDone) {
@@ -5963,6 +5981,10 @@
                 });
 
                 await wait(1100);
+
+                // Fade in the escape hero card
+                const escCard = overlay.querySelector('#vcEscapeHero');
+                if (escCard) escCard.style.opacity = '1';
 
                 // -- Step 5: "Oh no!" text --
                 await showText('Oh no! Your characters are captured!', 2600);
@@ -6217,7 +6239,7 @@
             await _voidFlipNode(tileEl, tileEl.dataset.color);
         }
 
-        // Build a branching path-map node layout
+        // Build the path map: YOU → junction → 5 choices → BOSS
         function _voidBuildPathMap(activeCount, isPreRun) {
             const s = _voidState;
             const nextBattle = s.battleNum + 1;
@@ -6225,42 +6247,17 @@
             const nextIsMiniBoss = !nextIsBoss && nextBattle % 15 === 0;
             const redVariant = isPreRun ? 'red-light' : (nextIsBoss ? 'red-boss' : nextIsMiniBoss ? 'red-dark' : 'red-light');
 
-            // Color pool
-            let pool = [redVariant, 'green-light', 'green-dark', 'yellow', 'purple', 'blue'];
+            // Color pool for the 5 choosable nodes
+            let pool = [redVariant, 'green-light', 'green-dark', 'yellow', 'blue'];
             if (!isPreRun && Math.random() < 0.10) {
                 const nonRedIdxs = pool.map((c,i) => i).filter(i => !pool[i].startsWith('red'));
                 if (nonRedIdxs.length > 0) pool[nonRedIdxs[Math.floor(Math.random() * nonRedIdxs.length)]] = 'gold';
             }
+            // Shuffle the 5 colors
             for (let i = pool.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [pool[i], pool[j]] = [pool[j], pool[i]];
             }
-
-            // Node data: up to 6 nodes, activeCount are clickable
-            const nodes = [];
-            for (let i = 0; i < 6; i++) {
-                nodes.push({ color: i < activeCount ? pool[i] : null, locked: i >= activeCount });
-            }
-
-            // Layout: branching fan shape
-            // Bottom center = "you are here" origin point
-            // Nodes spread upward in a fan: bottom → 3 mid → 2 top-ish → 1 far
-            // We'll place 6 nodes in a tree: 1 bottom-center connects to up to 3 mid, which connect to nodes above
-            // Positions as percentage of container (left%, top%)
-            const positions = [
-                [50, 80],   // node 0: bottom-center (origin — locked, just visual)
-                [20, 55],   // node 1: mid-left
-                [50, 50],   // node 2: mid-center
-                [80, 55],   // node 3: mid-right
-                [30, 22],   // node 4: upper-left
-                [70, 22],   // node 5: upper-right
-            ];
-
-            // Edges: which nodes connect to which (parent → child)
-            const edges = [
-                [0, 1], [0, 2], [0, 3],   // origin → mid row
-                [1, 4], [2, 4], [2, 5], [3, 5],  // mid → upper row
-            ];
 
             const colorLabel = {
                 'red-light':'⚔️','red-dark':'⚔️','red-boss':'💀',
@@ -6268,56 +6265,105 @@
                 yellow:'💛',purple:'💜',blue:'💙',gold:'✨'
             };
 
-            // Get or create the path map container (reuse vrestGrid)
+            // Container setup
             const container = document.getElementById('vrestGrid');
             container.innerHTML = '';
-            container.style.display = 'block';
-            container.style.position = 'relative';
-            container.style.height = '320px';
-            container.style.maxWidth = '420px';
-            container.style.width = '100%';
-            container.style.margin = '0 auto';
 
-            // Draw SVG edges
+            // Layout coordinates (% of container width/height)
+            // Origin at bottom-center, junction mid-low, 5 choices in mid, boss at top
+            const W = 420, H = 380; // logical px matching CSS height
+
+            // Key Y positions (as %)
+            const yOrigin   = 92;  // YOU dot
+            const yJunction = 75;  // single junction node
+            const yChoices  = 42;  // 5 choosable nodes
+            const yBoss     = 10;  // boss node
+
+            // X positions for 5 choice nodes (evenly spread)
+            const choiceXs  = [10, 27.5, 50, 72.5, 90];
+
+            // SVG for lines
             const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            svg.setAttribute('class', 'vpath-svg');
-            svg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;';
-            edges.forEach(([from, to]) => {
-                const [x1p, y1p] = positions[from];
-                const [x2p, y2p] = positions[to];
+            svg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:0;';
+
+            function svgLine(x1p, y1p, x2p, y2p, color) {
                 const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                line.setAttribute('x1', x1p + '%');
-                line.setAttribute('y1', y1p + '%');
-                line.setAttribute('x2', x2p + '%');
-                line.setAttribute('y2', y2p + '%');
-                line.setAttribute('stroke', 'rgba(168,85,247,0.35)');
+                line.setAttribute('x1', x1p + '%'); line.setAttribute('y1', y1p + '%');
+                line.setAttribute('x2', x2p + '%'); line.setAttribute('y2', y2p + '%');
+                line.setAttribute('stroke', color || 'rgba(168,85,247,0.4)');
                 line.setAttribute('stroke-width', '2');
-                line.setAttribute('stroke-dasharray', '5 4');
+                line.setAttribute('stroke-dasharray', '6 4');
                 svg.appendChild(line);
-            });
+            }
+
+            // Lines: origin → junction
+            svgLine(50, yOrigin, 50, yJunction);
+
+            // Lines: junction → each choice node
+            choiceXs.forEach(cx => svgLine(50, yJunction, cx, yChoices));
+
+            // Lines: each choice node → boss
+            choiceXs.forEach(cx => svgLine(cx, yChoices, 50, yBoss));
+
             container.appendChild(svg);
 
-            // Draw nodes (skip node 0 — it's the origin, always locked/decorative)
-            nodes.forEach((n, i) => {
-                if (i === 0) {
-                    // Origin marker — just a small glowing dot
-                    const origin = document.createElement('div');
-                    origin.style.cssText = `position:absolute;left:${positions[0][0]}%;top:${positions[0][1]}%;transform:translate(-50%,-50%);width:20px;height:20px;border-radius:50%;background:#7c3aed;box-shadow:0 0 12px rgba(124,58,237,0.8);z-index:2;`;
-                    container.appendChild(origin);
-                    return;
-                }
-                const [lp, tp] = positions[i];
+            // Origin dot (YOU)
+            const originDot = document.createElement('div');
+            originDot.style.cssText = `position:absolute;left:50%;top:${yOrigin}%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;background:#7c3aed;box-shadow:0 0 10px rgba(124,58,237,0.9);z-index:2;`;
+            const youLabel = document.createElement('div');
+            youLabel.style.cssText = 'position:absolute;left:50%;top:'+yOrigin+'%;transform:translate(-50%,14px);font-size:10px;color:#b8a8d8;letter-spacing:1px;z-index:2;white-space:nowrap;';
+            youLabel.textContent = 'YOU';
+            container.appendChild(originDot);
+            container.appendChild(youLabel);
+
+            // Junction node (always locked/decorative — small diamond)
+            const junctionEl = document.createElement('div');
+            junctionEl.style.cssText = `position:absolute;left:50%;top:${yJunction}%;transform:translate(-50%,-50%) rotate(45deg);width:14px;height:14px;background:#4c1d95;border:2px solid #7c3aed;z-index:2;`;
+            container.appendChild(junctionEl);
+
+            // Boss node at top (always locked — shows what's coming)
+            const bossEl = document.createElement('div');
+            const bossColor = nextIsBoss ? '#dc2626' : nextIsMiniBoss ? '#f97316' : '#4c1d95';
+            const bossBorder = nextIsBoss ? '#f87171' : nextIsMiniBoss ? '#fb923c' : '#7c3aed';
+            const bossEmoji = nextIsBoss ? '💀' : nextIsMiniBoss ? '⭐' : '🔒';
+            bossEl.style.cssText = `position:absolute;left:50%;top:${yBoss}%;transform:translate(-50%,-50%);width:52px;height:52px;border-radius:8px;border:2px solid ${bossBorder};background:linear-gradient(135deg,${bossColor}88,${bossColor});display:flex;align-items:center;justify-content:center;font-size:22px;z-index:2;box-shadow:0 0 12px ${bossColor}88;`;
+            bossEl.textContent = bossEmoji;
+            const bossLbl = document.createElement('div');
+            bossLbl.style.cssText = `position:absolute;left:50%;top:${yBoss}%;transform:translate(-50%,calc(-50% + 32px));font-size:9px;color:${bossBorder};letter-spacing:1px;font-weight:bold;z-index:2;white-space:nowrap;`;
+            bossLbl.textContent = nextIsBoss ? 'BOSS' : nextIsMiniBoss ? 'MINI-BOSS' : 'AHEAD';
+            container.appendChild(bossEl);
+            container.appendChild(bossLbl);
+
+            // 5 choice nodes
+            choiceXs.forEach((cx, i) => {
+                const isActive = !isPreRun && i < activeCount;
+                const color = pool[i];
+
                 const node = document.createElement('div');
-                node.className = 'vpath-node' + (n.locked ? ' locked' : '');
-                node.dataset.color = n.color || '';
-                node.style.left = lp + '%';
-                node.style.top = tp + '%';
-                node.textContent = n.locked ? '🔒' : '?';
-                if (!n.locked) {
-                    node.addEventListener('click', () => _voidFlipNode(node, n.color));
+                node.className = 'vpath-node' + (isActive ? '' : ' locked');
+                node.dataset.color = isActive ? color : '';
+                node.style.cssText = `left:${cx}%;top:${yChoices}%;`;
+                node.style.zIndex = '3';
+                node.textContent = isActive ? '?' : '🔒';
+
+                if (isActive) {
+                    node.addEventListener('click', () => _voidFlipNode(node, color));
                 }
                 container.appendChild(node);
             });
+
+            // For pre-run: show single active node at junction level (player clicks to start)
+            if (isPreRun) {
+                // Make the junction into the clickable node
+                junctionEl.remove();
+                const startNode = document.createElement('div');
+                startNode.className = 'vpath-node';
+                startNode.dataset.color = 'red-light';
+                startNode.style.cssText = `left:50%;top:${yJunction}%;z-index:3;`;
+                startNode.textContent = '?';
+                startNode.addEventListener('click', () => _voidFlipNode(startNode, 'red-light'));
+                container.appendChild(startNode);
+            }
         }
 
         // Flip a path node
