@@ -5780,11 +5780,12 @@
             // Shuffle all heroes
             const shuffled = allHeroes.slice().sort(() => Math.random() - 0.5);
             // The starter is the FIRST hero � they escape and are NOT captured
-            const starter = shuffled[0];
-            // The captured heroes are the NEXT 2 (or fewer if roster is small)
-            // They are shown in the cinematic getting caged and dragged away
-            // Capture up to 3 heroes (indices 1, 2, 3) — starter is index 0
-            const capturedHeroes = shuffled.slice(1, Math.min(4, shuffled.length));
+            const shuffled = allHeroes.slice().sort(() => Math.random() - 0.5);
+            // Pick a RANDOM hero as the starter (escape hero) — truly random each run
+            const starterIdx = Math.floor(Math.random() * shuffled.length);
+            const starter = shuffled[starterIdx];
+            // All other heroes (up to 3) are the captured ones
+            const capturedHeroes = shuffled.filter((_, i) => i !== starterIdx).slice(0, 3);
             // If roster is too small, pad captured list with arena characters as stand-ins
             const chosen = [...capturedHeroes];
             if (chosen.length < 3) {
@@ -5839,54 +5840,66 @@
             }
             stars += '</div>';
 
-            // Resolve idb: portrait URLs to actual data URLs before building HTML
+            // Resolve idb: portrait URLs for captured heroes
             const resolvedHeroes = await Promise.all(heroes.map(async h => {
                 let portrait = h.portrait || '';
                 if (portrait.startsWith('idb:')) portrait = (await resolveMediaUrl(portrait)) || '';
                 return { ...h, portrait };
             }));
 
-            // Hero sprites (these are the CAPTURED heroes)
-            let heroHTML = '';
-            resolvedHeroes.forEach((h, i) => {
-                const imgSrc = h.portrait;
-                // Use a wrapper div so portrait always has a visible circular frame
-                const imgEl = imgSrc
-                    ? `<div class="vc-hero-img" style="background:#2d1550;overflow:hidden;display:flex;align-items:center;justify-content:center;">
-                           <img src="${imgSrc}" alt="${h.name}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='🧙';this.parentElement.style.fontSize='36px';">
-                       </div>`
-                    : `<div class="vc-hero-img" style="display:flex;align-items:center;justify-content:center;font-size:36px;background:#2d1550;">🧙</div>`;
-
-                heroHTML += `
-                    <div class="vc-hero" id="vcHero${i}">
-                        <div class="vc-cage" id="vcCage${i}" style="position:absolute;top:-180px;font-size:72px;line-height:1;pointer-events:none;opacity:0;">⛓️</div>
-                        ${imgEl}
-                        <div class="vc-hero-name">${h.name}</div>
-                    </div>`;
-            });
-
-            // Resolve starter/escape hero portrait
+            // Resolve escape hero portrait
             let escapePortrait = escapeHero ? (escapeHero.portrait || '') : '';
             if (escapePortrait.startsWith('idb:')) escapePortrait = (await resolveMediaUrl(escapePortrait)) || '';
             const escapeName = escapeHero ? escapeHero.name : '';
 
-            const escapeCard = escapeName ? `
-                <div id="vcEscapeHero" style="position:absolute;bottom:24px;right:24px;display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0;transition:opacity 0.8s ease;">
-                    <div style="width:72px;height:72px;border-radius:50%;border:3px solid #a855f7;background:#2d1550;overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(168,85,247,0.6);">
-                        ${escapePortrait
-                            ? `<img src="${escapePortrait}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='🧙';this.parentElement.style.fontSize='28px';">`
-                            : `<span style="font-size:28px;">🧙</span>`}
-                    </div>
-                    <div style="color:#d8b4fe;font-size:11px;font-weight:bold;text-shadow:0 0 8px rgba(168,85,247,0.8);text-align:center;max-width:80px;">${escapeName}</div>
-                    <div style="color:#86efac;font-size:9px;letter-spacing:2px;text-transform:uppercase;">escaped</div>
-                </div>` : '';
+            // Build ALL heroes for the stage — captured first, escape hero in center
+            // We insert the escape hero at index Math.floor(resolvedHeroes.length / 2)
+            // so it appears in the middle of the lineup
+            const allStageHeroes = [...resolvedHeroes];
+            const insertIdx = Math.floor(allStageHeroes.length / 2);
+
+            let heroHTML = '';
+            // Build captured heroes with index tracking
+            // We need to track which index in the stage array is the escape hero
+            // Insert escape hero at center position
+            const stageWithEscape = [
+                ...allStageHeroes.slice(0, insertIdx),
+                { ...escapeHero, portrait: escapePortrait, _isEscape: true },
+                ...allStageHeroes.slice(insertIdx)
+            ];
+
+            stageWithEscape.forEach((h, i) => {
+                const imgSrc = h.portrait;
+                const imgEl = imgSrc
+                    ? `<div class="vc-hero-img" style="background:#2d1550;overflow:hidden;display:flex;align-items:center;justify-content:center;${h._isEscape ? 'border:3px solid #a855f7;box-shadow:0 0 20px rgba(168,85,247,0.7);' : ''}">
+                           <img src="${imgSrc}" alt="${h.name}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='🧙';this.parentElement.style.fontSize='36px';">
+                       </div>`
+                    : `<div class="vc-hero-img" style="display:flex;align-items:center;justify-content:center;font-size:36px;background:#2d1550;${h._isEscape ? 'border:3px solid #a855f7;box-shadow:0 0 20px rgba(168,85,247,0.7);' : ''}">🧙</div>`;
+
+                if (h._isEscape) {
+                    // Escape hero — no cage, green glow border, "Starter" label
+                    heroHTML += `
+                        <div class="vc-hero" id="vcEscapeHero">
+                            ${imgEl}
+                            <div class="vc-hero-name" style="color:#86efac;text-shadow:0 0 8px rgba(134,239,172,0.8);">${h.name}<br><span style="font-size:10px;letter-spacing:1px;color:#a3e635;">★ STARTER</span></div>
+                        </div>`;
+                } else {
+                    // Captured hero — has chain cage
+                    const captureIdx = stageWithEscape.filter((x, j) => j < i && !x._isEscape).length;
+                    heroHTML += `
+                        <div class="vc-hero" id="vcHero${captureIdx}">
+                            <div class="vc-cage" id="vcCage${captureIdx}" style="position:absolute;top:-180px;font-size:72px;line-height:1;pointer-events:none;opacity:0;">⛓️</div>
+                            ${imgEl}
+                            <div class="vc-hero-name">${h.name}</div>
+                        </div>`;
+                }
+            });
 
             return `
                 ${stars}
                 <div class="vc-ground"></div>
                 <div class="vc-stage" id="vcStage">${heroHTML}</div>
-                <div class="vc-text" id="vcText"></div>
-                ${escapeCard}`;
+                <div class="vc-text" id="vcText"></div>`;
         }
 
         function _runVoidCinematic(overlay, heroes, starter, onDone) {
@@ -5912,9 +5925,9 @@
             function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
             (async () => {
-                // -- Step 1: Heroes bounce in --
-                heroes.forEach((h, i) => {
-                    const heroEl = overlay.querySelector('#vcHero' + i);
+                // ── Step 1: ALL heroes bounce in (captured + escape hero) ──
+                const allHeroEls = overlay.querySelectorAll('.vc-hero');
+                allHeroEls.forEach((heroEl, i) => {
                     if (!heroEl) return;
                     heroEl.style.opacity = '0';
                     heroEl.style.transform = 'translateY(60px)';
@@ -5924,12 +5937,10 @@
                         heroEl.style.transform = 'translateY(0)';
                     }, 200 + i * 180);
                 });
-                await wait(900 + heroes.length * 180);
+                await wait(900 + allHeroEls.length * 180);
 
-                // Start idle bounce
-                heroes.forEach((h, i) => {
-                    const heroEl = overlay.querySelector('#vcHero' + i);
-                    if (!heroEl) return;
+                // Start idle bounce for all
+                allHeroEls.forEach((heroEl, i) => {
                     const imgEl = heroEl.querySelector('.vc-hero-img');
                     if (imgEl) {
                         imgEl.style.animation = `vcBounce ${1.2 + i * 0.15}s ease-in-out infinite`;
@@ -5941,14 +5952,17 @@
                 await showText('What a peaceful day in this universe...', 2400);
                 await wait(300);
 
-                // -- Step 3: Cages drop --
+                // -- Step 3: Chains drop on captured heroes, escape hero reacts --
+                // Stop all bouncing first
+                allHeroEls.forEach(heroEl => {
+                    const imgEl = heroEl.querySelector('.vc-hero-img');
+                    if (imgEl) imgEl.style.animation = 'none';
+                });
+
+                // Drop chains on captured heroes only (not the escape hero)
                 heroes.forEach((h, i) => {
                     const heroEl = overlay.querySelector('#vcHero' + i);
                     if (!heroEl) return;
-                    // Stop bouncing
-                    const imgEl = heroEl.querySelector('.vc-hero-img');
-                    if (imgEl) imgEl.style.animation = 'none';
-
                     const cage = overlay.querySelector('#vcCage' + i);
                     if (cage) {
                         cage.style.animation = 'vcCageDrop 0.7s cubic-bezier(.4,0,.2,1) forwards';
@@ -5956,9 +5970,20 @@
                     }
                 });
 
+                // Escape hero flashes green (alarmed)
+                const escapeEl = overlay.querySelector('#vcEscapeHero');
+                if (escapeEl) {
+                    const escImgEl = escapeEl.querySelector('.vc-hero-img');
+                    if (escImgEl) {
+                        escImgEl.style.transition = 'box-shadow 0.3s';
+                        escImgEl.style.boxShadow = '0 0 30px rgba(134,239,172,0.9)';
+                        setTimeout(() => { if (escImgEl) escImgEl.style.animation = 'vcShake 0.4s ease'; }, 400);
+                    }
+                }
+
                 await wait(900);
 
-                // Shake heroes on cage impact
+                // Shake captured heroes on cage impact
                 heroes.forEach((h, i) => {
                     const heroEl = overlay.querySelector('#vcHero' + i);
                     if (!heroEl) return;
@@ -5971,7 +5996,7 @@
 
                 await wait(700);
 
-                // -- Step 4: Heroes dragged off screen --
+                // -- Step 4: Captured heroes dragged off screen --
                 heroes.forEach((h, i) => {
                     const heroEl = overlay.querySelector('#vcHero' + i);
                     if (!heroEl) return;
@@ -5980,11 +6005,14 @@
                     heroEl.style.animationDelay = (i * 100) + 'ms';
                 });
 
-                await wait(1100);
+                // Escape hero runs DOWN off screen
+                if (escapeEl) {
+                    escapeEl.style.transition = 'transform 0.9s ease-in, opacity 0.9s ease-in';
+                    escapeEl.style.transform = 'translateY(200px)';
+                    escapeEl.style.opacity = '0';
+                }
 
-                // Fade in the escape hero card
-                const escCard = overlay.querySelector('#vcEscapeHero');
-                if (escCard) escCard.style.opacity = '1';
+                await wait(1100);
 
                 // -- Step 5: "Oh no!" text --
                 await showText('Oh no! Your characters are captured!', 2600);
