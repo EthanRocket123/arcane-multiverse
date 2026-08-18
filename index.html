@@ -1321,7 +1321,7 @@
             <p id="dataStorageWarning" style="margin-top: 10px; color: #999; font-size: 14px;">All data is temporary and stored only in this browser session.</p>
 
             <button class="logout-btn" onclick="logout()" style="margin-top: 20px;">LOGOUT NOW</button>
-            <button onclick="forceDeleteAllGlitched()" style="margin-top:10px;width:100%;padding:10px;background:#7c3aed;color:white;border:none;border-radius:5px;cursor:pointer;font-weight:bold;font-size:14px;">🧹 Remove All Glitched Heroes</button>
+            <button onclick="forceDeleteAllGlitched()" style="margin-top:10px;width:100%;padding:10px;background:#7c3aed;color:white;border:none;border-radius:5px;cursor:pointer;font-weight:bold;font-size:14px;">🧹 Remove Glitched &amp; Duplicate Heroes</button>
 
             <!-- Help Menu -->
             <div class="settings-section" style="margin-top:20px;">
@@ -2855,7 +2855,19 @@
         function forceDeleteAllGlitched() {
             let gameData = JSON.parse(sessionStorage.getItem('gameData') || '{"heroes":[]}');
             const before = (gameData.heroes || []).length;
+
+            // Step 1: Remove heroes with no id or name
             gameData.heroes = (gameData.heroes || []).filter(h => h && h.id && h.name && typeof h.name === 'string' && h.name.trim());
+
+            // Step 2: Remove duplicate heroes — keep the LAST occurrence of each name (most recently saved)
+            const seen = new Map();
+            gameData.heroes.forEach((h, i) => {
+                const key = h.name.trim().toLowerCase();
+                seen.set(key, i); // overwrite — last index wins
+            });
+            const keepIndices = new Set(seen.values());
+            gameData.heroes = gameData.heroes.filter((h, i) => keepIndices.has(i));
+
             const removed = before - gameData.heroes.length;
             sessionStorage.setItem('gameData', JSON.stringify(gameData));
             const cu = localStorage.getItem('currentUser');
@@ -2871,8 +2883,8 @@
             }
             loadHeroes();
             populateHeroSelector();
-            if (removed > 0) { if (window.showToast) window.showToast('Removed ' + removed + ' glitched hero' + (removed > 1 ? 'es' : ''), 'success'); }
-            else { if (window.showToast) window.showToast('No glitched heroes found', 'info'); }
+            if (removed > 0) { if (window.showToast) window.showToast('Removed ' + removed + ' duplicate/glitched hero' + (removed > 1 ? 'es' : ''), 'success'); }
+            else { if (window.showToast) window.showToast('No duplicates or glitched heroes found', 'info'); }
         }
 
         let editPortraitData = null;
