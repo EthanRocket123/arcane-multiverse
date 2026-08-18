@@ -1891,6 +1891,72 @@
                 }
                 .vrest-continue-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(124,58,237,0.4); }
 
+                /* ── Path Map (replaces flat grid) ── */
+                .vpath-map {
+                    position: relative;
+                    width: 100%;
+                    max-width: 420px;
+                    height: 320px;
+                    margin: 0 auto;
+                }
+                .vpath-svg {
+                    position: absolute;
+                    inset: 0;
+                    width: 100%;
+                    height: 100%;
+                    pointer-events: none;
+                    overflow: visible;
+                }
+                .vpath-node {
+                    position: absolute;
+                    width: 64px;
+                    height: 64px;
+                    border-radius: 50%;
+                    border: 3px solid rgba(168,85,247,0.5);
+                    background: linear-gradient(135deg, #1a0a2e, #2d1050);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 22px;
+                    font-weight: bold;
+                    color: rgba(168,85,247,0.7);
+                    cursor: pointer;
+                    transform: translate(-50%, -50%);
+                    transition: box-shadow 0.2s, transform 0.15s;
+                    z-index: 2;
+                    user-select: none;
+                }
+                .vpath-node.locked {
+                    cursor: not-allowed;
+                    opacity: 0.3;
+                    filter: grayscale(1);
+                }
+                .vpath-node:not(.locked):not(.used):hover {
+                    box-shadow: 0 0 22px rgba(168,85,247,0.8);
+                    transform: translate(-50%, -50%) scale(1.12);
+                }
+                .vpath-node.flipped {
+                    border-color: var(--node-color, #a855f7);
+                    box-shadow: 0 0 18px var(--node-color, rgba(168,85,247,0.6));
+                }
+                .vpath-node.flipped.color-red-light  { --node-color: #fca5a5; background: linear-gradient(135deg,#7f1d1d,#ef4444); }
+                .vpath-node.flipped.color-red-dark   { --node-color: #f87171; background: linear-gradient(135deg,#450a0a,#b91c1c); }
+                .vpath-node.flipped.color-red-boss   { --node-color: #dc2626; background: linear-gradient(135deg,#1a0000,#7f1d1d); animation: vrestBossGlow 0.6s ease-in-out infinite alternate; }
+                .vpath-node.flipped.color-green-light{ --node-color: #4ade80; background: linear-gradient(135deg,#14532d,#16a34a); }
+                .vpath-node.flipped.color-green-dark { --node-color: #86efac; background: linear-gradient(135deg,#052e16,#15803d); }
+                .vpath-node.flipped.color-yellow     { --node-color: #fbbf24; background: linear-gradient(135deg,#78350f,#d97706); }
+                .vpath-node.flipped.color-blue       { --node-color: #60a5fa; background: linear-gradient(135deg,#1e3a5f,#2563eb); }
+                .vpath-node.flipped.color-purple     { --node-color: #c084fc; background: linear-gradient(135deg,#3b0764,#7c3aed); }
+                .vpath-node.flipped.color-gold       { --node-color: #fde68a; background: linear-gradient(135deg,#92400e,#f59e0b); }
+                @keyframes vpath-spin {
+                    0%   { transform: translate(-50%,-50%) rotateY(0deg); }
+                    50%  { transform: translate(-50%,-50%) rotateY(90deg) scale(1.2); }
+                    100% { transform: translate(-50%,-50%) rotateY(0deg); }
+                }
+                .vpath-node.spinning {
+                    animation: vpath-spin 0.55s ease forwards;
+                }
+
                 @media (max-width: 600px) {
                     .void-lower { flex-direction: column; }
                     .void-log { width: 100%; max-width: 100%; height: 140px; }
@@ -5716,9 +5782,19 @@
             const starter = shuffled[0];
             // The captured heroes are the NEXT 2 (or fewer if roster is small)
             // They are shown in the cinematic getting caged and dragged away
-            const capturedHeroes = shuffled.slice(1, Math.min(3, shuffled.length));
-            // If we have no other heroes, use up to 2 random arena characters as captured placeholders
-            const chosen = capturedHeroes.length > 0 ? capturedHeroes : [starter]; // fallback: show starter alone
+            // Capture up to 3 heroes (indices 1, 2, 3) — starter is index 0
+            const capturedHeroes = shuffled.slice(1, Math.min(4, shuffled.length));
+            // If roster is too small, pad captured list with arena characters as stand-ins
+            const chosen = [...capturedHeroes];
+            if (chosen.length < 3) {
+                const arenaPool = typeof arenaCharacters !== 'undefined' ? arenaCharacters : [];
+                const shuffledArena = arenaPool.slice().sort(() => Math.random() - 0.5);
+                let ai = 0;
+                while (chosen.length < 3 && ai < shuffledArena.length) {
+                    const ac = shuffledArena[ai++];
+                    if (!chosen.find(c => c.name === ac.name)) chosen.push(ac);
+                }
+            }
 
             // Hide the void landing screen
             const voidLanding = document.querySelector('#void > div:first-of-type');
@@ -5773,9 +5849,11 @@
             let heroHTML = '';
             resolvedHeroes.forEach((h, i) => {
                 const imgSrc = h.portrait;
+                // Use a wrapper div so portrait always has a visible circular frame
                 const imgEl = imgSrc
-                    ? `<img class="vc-hero-img" src="${imgSrc}" alt="${h.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-                       <div class="vc-hero-img" style="display:none;align-items:center;justify-content:center;font-size:36px;background:#2d1550;">🧙</div>`
+                    ? `<div class="vc-hero-img" style="background:#2d1550;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+                           <img src="${imgSrc}" alt="${h.name}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='🧙';this.parentElement.style.fontSize='36px';">
+                       </div>`
                     : `<div class="vc-hero-img" style="display:flex;align-items:center;justify-content:center;font-size:36px;background:#2d1550;">🧙</div>`;
 
                 heroHTML += `
@@ -6129,55 +6207,142 @@
             document.getElementById('vrestEffectMsg').style.color = '';
             document.getElementById('vrestContinueBtn').style.display = 'none';
 
-            // 6 tiles: 1 active red-light, 5 locked
-            const tiles = [];
-            for (let i = 0; i < 6; i++) {
-                tiles.push({ color: i === 0 ? 'red-light' : null, locked: i !== 0 });
-            }
-            // Shuffle so the active tile lands in a random position
-            for (let i = tiles.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
-            }
-
-            const grid = document.getElementById('vrestGrid');
-            grid.innerHTML = '';
-            tiles.forEach((t, idx) => {
-                const tile = document.createElement('div');
-                tile.className = 'vrest-tile' + (t.locked ? ' locked' : '');
-                tile.dataset.color = t.color || '';
-                if (!t.locked) tile.addEventListener('click', () => _voidFlipPreRunTile(idx, tile));
-                tile.innerHTML = `
-                    <div class="vrest-tile-inner">
-                        <div class="vrest-tile-front">${t.locked ? '🔒' : '?'}</div>
-                        <div class="vrest-tile-back vrest-color-${t.color || ''}">
-                            ${t.locked ? '' : '⚔️'}
-                        </div>
-                    </div>`;
-                grid.appendChild(tile);
-            });
-
+            // For pre-run: single active node in path map
+            _voidBuildPathMap(1, true);
             document.getElementById('voidVictoryScreen').style.display = 'flex';
         }
 
-        // Flip the pre-run tile — no effect text, just reveal and show Continue
+        // Flip the pre-run node (delegates to _voidFlipNode)
         async function _voidFlipPreRunTile(idx, tileEl) {
-            if (tileEl.classList.contains('used') || tileEl.classList.contains('locked')) return;
-            const grid = document.getElementById('vrestGrid');
-            grid.querySelectorAll('.vrest-tile:not(.locked)').forEach(t => t.classList.add('used'));
+            await _voidFlipNode(tileEl, tileEl.dataset.color);
+        }
+
+        // Build a branching path-map node layout
+        function _voidBuildPathMap(activeCount, isPreRun) {
+            const s = _voidState;
+            const nextBattle = s.battleNum + 1;
+            const nextIsBoss     = nextBattle % 25 === 0;
+            const nextIsMiniBoss = !nextIsBoss && nextBattle % 15 === 0;
+            const redVariant = isPreRun ? 'red-light' : (nextIsBoss ? 'red-boss' : nextIsMiniBoss ? 'red-dark' : 'red-light');
+
+            // Color pool
+            let pool = [redVariant, 'green-light', 'green-dark', 'yellow', 'purple', 'blue'];
+            if (!isPreRun && Math.random() < 0.10) {
+                const nonRedIdxs = pool.map((c,i) => i).filter(i => !pool[i].startsWith('red'));
+                if (nonRedIdxs.length > 0) pool[nonRedIdxs[Math.floor(Math.random() * nonRedIdxs.length)]] = 'gold';
+            }
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+
+            // Node data: up to 6 nodes, activeCount are clickable
+            const nodes = [];
+            for (let i = 0; i < 6; i++) {
+                nodes.push({ color: i < activeCount ? pool[i] : null, locked: i >= activeCount });
+            }
+
+            // Layout: branching fan shape
+            // Bottom center = "you are here" origin point
+            // Nodes spread upward in a fan: bottom → 3 mid → 2 top-ish → 1 far
+            // We'll place 6 nodes in a tree: 1 bottom-center connects to up to 3 mid, which connect to nodes above
+            // Positions as percentage of container (left%, top%)
+            const positions = [
+                [50, 80],   // node 0: bottom-center (origin — locked, just visual)
+                [20, 55],   // node 1: mid-left
+                [50, 50],   // node 2: mid-center
+                [80, 55],   // node 3: mid-right
+                [30, 22],   // node 4: upper-left
+                [70, 22],   // node 5: upper-right
+            ];
+
+            // Edges: which nodes connect to which (parent → child)
+            const edges = [
+                [0, 1], [0, 2], [0, 3],   // origin → mid row
+                [1, 4], [2, 4], [2, 5], [3, 5],  // mid → upper row
+            ];
+
+            const colorLabel = {
+                'red-light':'⚔️','red-dark':'⚔️','red-boss':'💀',
+                'green-light':'💚','green-dark':'💚',
+                yellow:'💛',purple:'💜',blue:'💙',gold:'✨'
+            };
+
+            // Get or create the path map container (reuse vrestGrid)
+            const container = document.getElementById('vrestGrid');
+            container.innerHTML = '';
+            container.style.display = 'block';
+            container.style.position = 'relative';
+            container.style.height = '320px';
+            container.style.maxWidth = '420px';
+            container.style.width = '100%';
+            container.style.margin = '0 auto';
+
+            // Draw SVG edges
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('class', 'vpath-svg');
+            svg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;';
+            edges.forEach(([from, to]) => {
+                const [x1p, y1p] = positions[from];
+                const [x2p, y2p] = positions[to];
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', x1p + '%');
+                line.setAttribute('y1', y1p + '%');
+                line.setAttribute('x2', x2p + '%');
+                line.setAttribute('y2', y2p + '%');
+                line.setAttribute('stroke', 'rgba(168,85,247,0.35)');
+                line.setAttribute('stroke-width', '2');
+                line.setAttribute('stroke-dasharray', '5 4');
+                svg.appendChild(line);
+            });
+            container.appendChild(svg);
+
+            // Draw nodes (skip node 0 — it's the origin, always locked/decorative)
+            nodes.forEach((n, i) => {
+                if (i === 0) {
+                    // Origin marker — just a small glowing dot
+                    const origin = document.createElement('div');
+                    origin.style.cssText = `position:absolute;left:${positions[0][0]}%;top:${positions[0][1]}%;transform:translate(-50%,-50%);width:20px;height:20px;border-radius:50%;background:#7c3aed;box-shadow:0 0 12px rgba(124,58,237,0.8);z-index:2;`;
+                    container.appendChild(origin);
+                    return;
+                }
+                const [lp, tp] = positions[i];
+                const node = document.createElement('div');
+                node.className = 'vpath-node' + (n.locked ? ' locked' : '');
+                node.dataset.color = n.color || '';
+                node.style.left = lp + '%';
+                node.style.top = tp + '%';
+                node.textContent = n.locked ? '🔒' : '?';
+                if (!n.locked) {
+                    node.addEventListener('click', () => _voidFlipNode(node, n.color));
+                }
+                container.appendChild(node);
+            });
+        }
+
+        // Flip a path node
+        async function _voidFlipNode(nodeEl, color) {
+            if (nodeEl.classList.contains('used') || nodeEl.classList.contains('locked')) return;
+            // Lock all nodes immediately
+            document.querySelectorAll('.vpath-node:not(.locked)').forEach(n => n.classList.add('used'));
             document.getElementById('vrestSubtitle').classList.add('picked');
 
-            const inner = tileEl.querySelector('.vrest-tile-inner');
-            inner.classList.add('vrest-animating');
-            await _voidDelay(750);
-            inner.classList.remove('vrest-animating');
-            tileEl.classList.add('flipped');
+            // Spin animation
+            nodeEl.classList.add('spinning');
+            await _voidDelay(300);
+            nodeEl.classList.remove('spinning');
+
+            // Reveal color
+            const colorLabel = {
+                'red-light':'⚔️','red-dark':'⚔️','red-boss':'💀',
+                'green-light':'💚','green-dark':'💚',
+                yellow:'💛',purple:'💜',blue:'💙',gold:'✨'
+            };
+            nodeEl.classList.add('flipped', 'color-' + color);
+            nodeEl.textContent = colorLabel[color] || '?';
 
             await _voidDelay(300);
-            const effectEl = document.getElementById('vrestEffectMsg');
-            effectEl.style.color = '#fca5a5';
-            effectEl.textContent = '⚔️ New foes await... let the journey begin!';
-            document.getElementById('vrestContinueBtn').style.display = 'inline-block';
+            _voidApplyTileEffect(color, nodeEl);
         }
 
         // -- Build an enemy for the current battle --------------------------
@@ -6191,16 +6356,6 @@
             else if (battleNum <= 49) pool = _voidEnemyRoster.filter(e => e.tier !== 'hard');
             else                  pool = _voidEnemyRoster.slice(); // all tiers
             if (pool.length === 0) pool = _voidEnemyRoster.slice();
-
-            // Optionally mix in player's roster heroes as fodder (non-boss normal battles)
-            if (!isMiniBoss && !isBoss && Math.random() < 0.35) {
-                const gameData = JSON.parse(sessionStorage.getItem('gameData') || '{"heroes":[]}');
-                const roster = (gameData.heroes || []).filter(h => h && h.name && h.moves && h.moves.length > 0);
-                if (roster.length > 0) {
-                    const rosterHero = roster[Math.floor(Math.random() * roster.length)];
-                    pool = [{ name: rosterHero.name, portrait: rosterHero.portrait || '??', tier: 'all', moves: rosterHero.moves }];
-                }
-            }
 
             const template = pool[Math.floor(Math.random() * pool.length)];
 
@@ -6467,6 +6622,25 @@
             _voidLog(`${actor.name} used ${move.name}!`, logType);
 
             const isEnemy = (actor === _voidState.enemy);
+
+            // Play move animation if available
+            if (!isEnemy) {
+                let voidMedia = null;
+                if (move.media && move.media.length > 0) {
+                    const validMedia = move.media.filter(m => m && m.url);
+                    if (validMedia.length > 0) {
+                        const pick = validMedia[Math.floor(Math.random() * validMedia.length)];
+                        voidMedia = { url: pick.url, hasAudio: !!pick.hasAudio };
+                    }
+                } else if (move.conditions && move.conditions.length > 0) {
+                    const cond = move.conditions[0];
+                    if (cond && cond.animation) voidMedia = { url: cond.animation, hasAudio: !!cond.hasAudio };
+                }
+                if (voidMedia) {
+                    try { await showBattleAnimation(voidMedia); } catch(e) {}
+                }
+            }
+
             const actorGimmicks = isEnemy ? actor.gimmicks : [];
             const targetGimmicks = isEnemy ? [] : _voidState.enemy.gimmicks;
 
@@ -6658,94 +6832,9 @@
             document.getElementById('vrestContinueBtn').style.display = 'none';
 
             // Build and render grid
-            _voidBuildRestGrid(activeCount);
+            _voidBuildPathMap(activeCount);
 
             document.getElementById('voidVictoryScreen').style.display = 'flex';
-        }
-
-        // Build 6-tile data array and render into #vrestGrid
-        function _voidBuildRestGrid(activeCount) {
-            const s = _voidState;
-            const nextBattle = s.battleNum + 1;
-            const nextIsBoss     = nextBattle % 25 === 0;
-            const nextIsMiniBoss = !nextIsBoss && nextBattle % 15 === 0;
-
-            // Red variant depends on the NEXT battle
-            const redVariant = nextIsBoss ? 'red-boss' : nextIsMiniBoss ? 'red-dark' : 'red-light';
-
-            // Base pool always includes one red and one of each utility color
-            let pool = [redVariant, 'green-light', 'green-dark', 'yellow', 'purple', 'blue'];
-            // Rare gold: ~10% chance replaces one non-red slot
-            if (Math.random() < 0.10) {
-                const nonRedIdxs = pool.map((c,i) => i).filter(i => !pool[i].startsWith('red'));
-                if (nonRedIdxs.length > 0) {
-                    pool[nonRedIdxs[Math.floor(Math.random() * nonRedIdxs.length)]] = 'gold';
-                }
-            }
-            // Shuffle pool
-            for (let i = pool.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [pool[i], pool[j]] = [pool[j], pool[i]];
-            }
-
-            const tiles = [];
-            for (let i = 0; i < 6; i++) {
-                tiles.push({ color: i < activeCount ? pool[i] : null, locked: i >= activeCount });
-            }
-            // Shuffle tile positions so locked isn't always last
-            for (let i = tiles.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
-            }
-
-            const colorLabel = {
-                'red-light':'??','red-dark':'??','red-boss':'??',
-                'green-light':'??','green-dark':'??',
-                yellow:'??',purple:'??',blue:'??',gold:'?'
-            };
-
-            const grid = document.getElementById('vrestGrid');
-            grid.innerHTML = '';
-            tiles.forEach((t, idx) => {
-                const tile = document.createElement('div');
-                tile.className = 'vrest-tile' + (t.locked ? ' locked' : '');
-                tile.dataset.color = t.color || '';
-                tile.dataset.idx = idx;
-                if (!t.locked) tile.addEventListener('click', () => _voidFlipTile(idx, tile));
-                tile.innerHTML = `
-                    <div class="vrest-tile-inner">
-                        <div class="vrest-tile-front">${t.locked ? '??' : '?'}</div>
-                        <div class="vrest-tile-back vrest-color-${t.color || ''}">
-                            ${t.locked ? '' : (colorLabel[t.color] || '?')}
-                        </div>
-                    </div>`;
-                grid.appendChild(tile);
-            });
-        }
-
-        // Flip a tile: rise + spin animation, then apply effect
-        async function _voidFlipTile(idx, tileEl) {
-            // Prevent double-clicks or clicking after one tile is already picked
-            if (tileEl.classList.contains('used') || tileEl.classList.contains('locked')) return;
-            const grid = document.getElementById('vrestGrid');
-            // Lock all tiles immediately
-            grid.querySelectorAll('.vrest-tile:not(.locked)').forEach(t => t.classList.add('used'));
-            document.getElementById('vrestSubtitle').classList.add('picked');
-
-            const inner = tileEl.querySelector('.vrest-tile-inner');
-            const color = tileEl.dataset.color;
-
-            // Trigger rise-and-flip animation
-            inner.classList.add('vrest-animating');
-            await _voidDelay(750);
-            inner.classList.remove('vrest-animating');
-
-            // Snap to flipped state (animation already ended at rotateY 180deg)
-            tileEl.classList.add('flipped');
-
-            // Apply effect after a beat
-            await _voidDelay(200);
-            _voidApplyTileEffect(color, tileEl);
         }
 
         // Stub effect handler � fill in real logic later
