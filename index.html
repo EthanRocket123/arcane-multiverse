@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -5777,9 +5777,7 @@
                 return;
             }
 
-            // Shuffle all heroes
-            const shuffled = allHeroes.slice().sort(() => Math.random() - 0.5);
-            // The starter is the FIRST hero � they escape and are NOT captured
+            // Shuffle all heroes — pick a random starter each run
             const shuffled = allHeroes.slice().sort(() => Math.random() - 0.5);
             // Pick a RANDOM hero as the starter (escape hero) — truly random each run
             const starterIdx = Math.floor(Math.random() * shuffled.length);
