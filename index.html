@@ -1885,8 +1885,8 @@
             document.getElementById('loginPassword').value = '';
         }
 
-        function executeAuth() {
-            window.authMode === 'create' ? createAccount() : normalLogin();
+        async function executeAuth() {
+            window.authMode === 'create' ? await createAccount() : await normalLogin();
         }
 
         async function createAccount() {
@@ -1895,6 +1895,21 @@
             if (!u || !p) return alert('Enter username and password.');
             let users = JSON.parse(localStorage.getItem('arcaneUsers') || '{}');
             if (users[u]) return alert('Account exists.');
+
+            // Wait up to 4 seconds for Firebase to finish initialising
+            if (window.FirebaseSync && !window.FirebaseSync.ready) {
+                await new Promise(resolve => {
+                    let waited = 0;
+                    const check = setInterval(() => {
+                        waited += 100;
+                        if (window.FirebaseSync.ready || waited >= 4000) {
+                            clearInterval(check);
+                            resolve();
+                        }
+                    }, 100);
+                });
+            }
+
             // Cross-device duplicate check via Firestore
             if (window.FirebaseSync && window.FirebaseSync.ready) {
                 const cloudExists = await window.FirebaseSync.exists(u);
@@ -1922,17 +1937,33 @@
         async function normalLogin() {
             const u = document.getElementById('loginUsername').value.trim();
             const p = document.getElementById('loginPassword').value;
+            if (!u || !p) return alert('Enter username and password.');
             let users = JSON.parse(localStorage.getItem('arcaneUsers') || '{}');
 
+            // Wait up to 4 seconds for Firebase to finish initialising on slow connections
+            if (window.FirebaseSync && !window.FirebaseSync.ready) {
+                await new Promise(resolve => {
+                    let waited = 0;
+                    const check = setInterval(() => {
+                        waited += 100;
+                        if (window.FirebaseSync.ready || waited >= 4000) {
+                            clearInterval(check);
+                            resolve();
+                        }
+                    }, 100);
+                });
+            }
+
             // Try loading from Firestore first if available
+            let cloudDoc = null;
             if (window.FirebaseSync && window.FirebaseSync.ready) {
-                const cloudDoc = await window.FirebaseSync.load(u);
+                cloudDoc = await window.FirebaseSync.load(u);
                 if (cloudDoc) {
                     // Cloud doc found — merge into local, cloud wins
                     users[u] = cloudDoc;
                     localStorage.setItem('arcaneUsers', JSON.stringify(users));
                 } else if (!users[u]) {
-                    return alert(`No account found for "${u}".`);
+                    return alert(`No account found for "${u}". If you created this account on another device, make sure you're connected to the internet.`);
                 }
                 // If cloud has no doc but local does, fall through to local auth
             } else if (!users[u]) {
@@ -1943,7 +1974,7 @@
                 return alert(hint);
             }
 
-            if (users[u].password !== p) return alert('Wrong password for "' + u + '".');
+            if (!users[u] || users[u].password !== p) return alert('Wrong password for "' + u + '".');
             localStorage.setItem('currentUser', u);
             sessionStorage.setItem('userType', 'account');
             sessionStorage.setItem('gameData', JSON.stringify(users[u].gameData || { heroes: [] }));
@@ -1952,13 +1983,10 @@
             if (!window.FirebaseSync || !window.FirebaseSync.ready) {
                 const ob = document.getElementById('offlineBanner');
                 if (ob) ob.style.display = 'block';
-            } else {
-                // Show migration banner if no cloud doc exists yet
-                const cloudCheck = await window.FirebaseSync.load(u);
-                if (!cloudCheck && !sessionStorage.getItem('migrationDismissed')) {
-                    const mb = document.getElementById('migrationBanner');
-                    if (mb) { mb.style.display = 'flex'; window._migrationUser = u; }
-                }
+            } else if (!cloudDoc && !sessionStorage.getItem('migrationDismissed')) {
+                // Show migration banner if account exists locally but not in cloud
+                const mb = document.getElementById('migrationBanner');
+                if (mb) { mb.style.display = 'flex'; window._migrationUser = u; }
             }
 
             showMainApp();
