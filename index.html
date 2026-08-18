@@ -1016,6 +1016,14 @@
     </div>
 
     <div id="mainApp" class="main-app">
+        <div id="offlineBanner" style="display:none;background:#f59e0b;color:#1a1a1a;text-align:center;padding:8px;font-size:13px;font-weight:bold;">⚠️ Offline mode — changes won't sync to the cloud</div>
+        <div id="migrationBanner" style="display:none;background:rgba(60,20,100,0.95);border-bottom:2px solid #7c3aed;padding:12px 20px;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+            <span style="color:#e0e0e0;font-size:13px;">☁️ Your account isn't synced to the cloud yet. Upload it to play on any device!</span>
+            <div style="display:flex;gap:8px;">
+                <button onclick="doMigration()" style="background:#7c3aed;color:white;border:none;padding:6px 14px;border-radius:5px;cursor:pointer;font-size:12px;font-weight:bold;">Upload Now</button>
+                <button onclick="dismissMigration()" style="background:transparent;border:1px solid #7c3aed;color:#b8a8d8;padding:6px 14px;border-radius:5px;cursor:pointer;font-size:12px;">Not Now</button>
+            </div>
+        </div>
         <div class="header">
             <h1>&#9889; ARCANE MULTIVERSE</h1>
             <div class="header-controls">
@@ -1438,6 +1446,116 @@
         <div id="battleAnimationContainer" style="position:relative;"></div>
     </div>
 
+    <!-- Firebase CDN — module script for crossplay account sync -->
+    <script type="module">
+        /* ---- FIREBASE CONFIG — only edit this section ---- */
+        const firebaseConfig = {
+            apiKey: "AIzaSyDifspVB6KJtGhZNKudObswDMZRX_ohjcc",
+            authDomain: "arcane-multiverse-74597.firebaseapp.com",
+            projectId: "arcane-multiverse-74597",
+            storageBucket: "arcane-multiverse-74597.firebasestorage.app",
+            messagingSenderId: "185209402837",
+            appId: "1:185209402837:web:9e774f3e1f5fd8d27ff95c"
+        };
+        /* -------------------------------------------------- */
+
+        // Toast helper
+        function showToast(message, type = 'info') {
+            const el = document.createElement('div');
+            el.className = `am-toast am-toast--${type}`;
+            el.textContent = message;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 4000);
+        }
+        window.showToast = showToast;
+
+        // Inject toast CSS
+        const toastStyle = document.createElement('style');
+        toastStyle.textContent = `
+            .am-toast {
+                position: fixed; bottom: 24px; right: 24px;
+                padding: 10px 18px; border-radius: 8px;
+                font-size: 13px; font-weight: bold;
+                z-index: 99999; pointer-events: none;
+                animation: toastIn 0.3s ease;
+                max-width: 320px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            }
+            @keyframes toastIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+            .am-toast--info    { background:#3b82f6; color:white; }
+            .am-toast--success { background:#22c55e; color:white; }
+            .am-toast--warn    { background:#f59e0b; color:#1a1a1a; }
+            .am-toast--error   { background:#dc2626; color:white; }
+        `;
+        document.head.appendChild(toastStyle);
+
+        // Expose stub BEFORE async init so classic script never sees undefined
+        window.FirebaseSync = {
+            ready: false,
+            async save(username, doc) { return false; },
+            async load(username) { return null; },
+            async exists(username) { return null; },
+            async updateField(username, fieldPath, value) { return false; }
+        };
+
+        try {
+            const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+            const { getFirestore, doc, setDoc, getDoc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+
+            window.FirebaseSync = {
+                ready: true,
+
+                async save(username, accountDoc) {
+                    try {
+                        const clean = JSON.parse(JSON.stringify(accountDoc));
+                        await setDoc(doc(db, 'users', username.toLowerCase()), clean, { merge: true });
+                        return true;
+                    } catch(e) {
+                        console.error('[FirebaseSync] save failed:', e);
+                        window.showToast('Cloud save failed — saved locally', 'warn');
+                        return false;
+                    }
+                },
+
+                async load(username) {
+                    try {
+                        const snap = await getDoc(doc(db, 'users', username.toLowerCase()));
+                        return snap.exists() ? snap.data() : null;
+                    } catch(e) {
+                        console.error('[FirebaseSync] load failed:', e);
+                        return null;
+                    }
+                },
+
+                async exists(username) {
+                    try {
+                        const snap = await getDoc(doc(db, 'users', username.toLowerCase()));
+                        return snap.exists();
+                    } catch(e) {
+                        console.error('[FirebaseSync] exists check failed:', e);
+                        return null;
+                    }
+                },
+
+                async updateField(username, fieldPath, value) {
+                    try {
+                        await updateDoc(doc(db, 'users', username.toLowerCase()), { [fieldPath]: value });
+                        return true;
+                    } catch(e) {
+                        console.error('[FirebaseSync] updateField failed:', e);
+                        return false;
+                    }
+                }
+            };
+
+            console.log('[FirebaseSync] Initialised — crossplay sync active');
+        } catch(err) {
+            console.warn('[FirebaseSync] Failed to initialise — offline mode active.', err);
+        }
+    </script>
+
     <script>
         /* -----------------------------------------------------------------------
            Combined script:
@@ -1726,6 +1844,16 @@
 
         function savePrefs(p) {
             localStorage.setItem(PREF_KEY, JSON.stringify(p));
+            const _cu = localStorage.getItem('currentUser');
+            const _type = sessionStorage.getItem('userType');
+            if (_cu && _type === 'account' && window.FirebaseSync && window.FirebaseSync.ready) {
+                const _users = JSON.parse(localStorage.getItem('arcaneUsers') || '{}');
+                if (_users[_cu]) {
+                    _users[_cu].preferences = p;
+                    localStorage.setItem('arcaneUsers', JSON.stringify(_users));
+                    window.FirebaseSync.save(_cu, _users[_cu]).catch(() => {});
+                }
+            }
         }
 
         function updateStatusDisplayPrefs() {
@@ -1761,41 +1889,97 @@
             window.authMode === 'create' ? createAccount() : normalLogin();
         }
 
-        function createAccount() {
+        async function createAccount() {
             const u = document.getElementById('loginUsername').value.trim();
             const p = document.getElementById('loginPassword').value;
             if (!u || !p) return alert('Enter username and password.');
             let users = JSON.parse(localStorage.getItem('arcaneUsers') || '{}');
             if (users[u]) return alert('Account exists.');
+            // Cross-device duplicate check via Firestore
+            if (window.FirebaseSync && window.FirebaseSync.ready) {
+                const cloudExists = await window.FirebaseSync.exists(u);
+                if (cloudExists === true) return alert('Account exists on another device.');
+            }
             users[u] = {
                 password: p,
                 profileIcon: '',
-                gameData: {
-                    heroes: [],
-                    battleHistory: []
-                }
+                gameData: { heroes: [], battleHistory: [] },
+                friends: [],
+                friendRequests: [],
+                privateHeroes: [],
+                preferences: { showStatusNames: false, showStatusEffects: false }
             };
             localStorage.setItem('arcaneUsers', JSON.stringify(users));
+            // Cloud save
+            if (window.FirebaseSync && window.FirebaseSync.ready) {
+                const ok = await window.FirebaseSync.save(u, users[u]);
+                if (ok) window.showToast && window.showToast('Account synced to cloud! ☁️', 'success');
+            }
             alert('Account created! You can now log in.');
             hideAuthScreen();
         }
 
-        function normalLogin() {
+        async function normalLogin() {
             const u = document.getElementById('loginUsername').value.trim();
             const p = document.getElementById('loginPassword').value;
             let users = JSON.parse(localStorage.getItem('arcaneUsers') || '{}');
-            const knownAccounts = Object.keys(users);
-            if (!users[u]) {
+
+            // Try loading from Firestore first if available
+            if (window.FirebaseSync && window.FirebaseSync.ready) {
+                const cloudDoc = await window.FirebaseSync.load(u);
+                if (cloudDoc) {
+                    // Cloud doc found — merge into local, cloud wins
+                    users[u] = cloudDoc;
+                    localStorage.setItem('arcaneUsers', JSON.stringify(users));
+                } else if (!users[u]) {
+                    return alert(`No account found for "${u}".`);
+                }
+                // If cloud has no doc but local does, fall through to local auth
+            } else if (!users[u]) {
+                const knownAccounts = Object.keys(users);
                 const hint = knownAccounts.length > 0
                     ? `No account found for "${u}".\nExisting accounts: ${knownAccounts.join(', ')}`
                     : `No account found for "${u}".\nNo accounts exist yet — use CREATE ACCOUNT first.`;
                 return alert(hint);
             }
+
             if (users[u].password !== p) return alert('Wrong password for "' + u + '".');
             localStorage.setItem('currentUser', u);
             sessionStorage.setItem('userType', 'account');
-            sessionStorage.setItem('gameData', JSON.stringify(users[u].gameData));
+            sessionStorage.setItem('gameData', JSON.stringify(users[u].gameData || { heroes: [] }));
+
+            // Show offline banner if Firebase not ready
+            if (!window.FirebaseSync || !window.FirebaseSync.ready) {
+                const ob = document.getElementById('offlineBanner');
+                if (ob) ob.style.display = 'block';
+            } else {
+                // Show migration banner if no cloud doc exists yet
+                const cloudCheck = await window.FirebaseSync.load(u);
+                if (!cloudCheck && !sessionStorage.getItem('migrationDismissed')) {
+                    const mb = document.getElementById('migrationBanner');
+                    if (mb) { mb.style.display = 'flex'; window._migrationUser = u; }
+                }
+            }
+
             showMainApp();
+        }
+
+        async function doMigration() {
+            const u = window._migrationUser || localStorage.getItem('currentUser');
+            if (!u) return;
+            const users = JSON.parse(localStorage.getItem('arcaneUsers') || '{}');
+            if (!users[u]) return;
+            const ok = await window.FirebaseSync.save(u, users[u]);
+            const mb = document.getElementById('migrationBanner');
+            if (mb) mb.style.display = 'none';
+            if (ok) window.showToast && window.showToast('Account uploaded! ☁️ Play on any device now.', 'success');
+            else window.showToast && window.showToast('Upload failed — try again later.', 'error');
+        }
+
+        function dismissMigration() {
+            const mb = document.getElementById('migrationBanner');
+            if (mb) mb.style.display = 'none';
+            sessionStorage.setItem('migrationDismissed', '1');
         }
 
         function toggleAccountViewer() {
@@ -1843,6 +2027,9 @@
             if (users[cu]) {
                 users[cu].gameData = JSON.parse(sessionStorage.getItem('gameData') || '{"heroes":[]}');
                 localStorage.setItem('arcaneUsers', JSON.stringify(users));
+                if (window.FirebaseSync && window.FirebaseSync.ready) {
+                    window.FirebaseSync.save(cu, users[cu]).catch(() => {});
+                }
             }
         }
 
@@ -1910,6 +2097,9 @@
             if (users[cu]) {
                 users[cu].profileIcon = dataUrl;
                 localStorage.setItem('arcaneUsers', JSON.stringify(users));
+                if (window.FirebaseSync && window.FirebaseSync.ready) {
+                    window.FirebaseSync.save(cu, users[cu]).catch(() => {});
+                }
                 loadUserProfileIcon(cu);
                 alert('Profile updated!');
             }
@@ -1948,6 +2138,10 @@
 
         function saveFriendData(users) {
             localStorage.setItem('arcaneUsers', JSON.stringify(users));
+            if (window.FirebaseSync && window.FirebaseSync.ready) {
+                const _cu = localStorage.getItem('currentUser');
+                if (_cu && users[_cu]) window.FirebaseSync.save(_cu, users[_cu]).catch(() => {});
+            }
         }
 
         function addFriend() {
@@ -1967,6 +2161,10 @@
             if (users[target].friendRequests.includes(cu)) { msg.style.color = '#f87171'; msg.innerText = `Request already sent to ${target}.`; return; }
             users[target].friendRequests.push(cu);
             saveFriendData(users);
+            // Cross-device friend request via Firestore
+            if (window.FirebaseSync && window.FirebaseSync.ready) {
+                window.FirebaseSync.updateField(target, 'friendRequests', users[target].friendRequests).catch(() => {});
+            }
             msg.style.color = '#86efac';
             msg.innerText = `Friend request sent to ${target}!`;
             loadFriendsTab();
@@ -2006,9 +2204,14 @@
             loadFriendsTab();
         }
 
-        function viewFriendProfile(name) {
-            const users = JSON.parse(localStorage.getItem('arcaneUsers') || '{}');
-            const friend = users[name];
+        async function viewFriendProfile(name) {
+            let users = JSON.parse(localStorage.getItem('arcaneUsers') || '{}');
+            let friend = users[name];
+            // Load latest friend data from Firestore for cross-device accuracy
+            if (window.FirebaseSync && window.FirebaseSync.ready) {
+                const cloudFriend = await window.FirebaseSync.load(name);
+                if (cloudFriend) friend = cloudFriend;
+            }
             if (!friend) return;
             const content = document.getElementById('friendProfileContent');
             const heroes = (friend.gameData && friend.gameData.heroes) || [];
@@ -2061,6 +2264,9 @@
             if (idx === -1) users[cu].privateHeroes.push(heroId);
             else users[cu].privateHeroes.splice(idx, 1);
             localStorage.setItem('arcaneUsers', JSON.stringify(users));
+            if (window.FirebaseSync && window.FirebaseSync.ready) {
+                window.FirebaseSync.save(cu, users[cu]).catch(() => {});
+            }
             loadFriendsTab();
         }
 
@@ -2600,6 +2806,9 @@
                 if (users[cu]) {
                     users[cu].gameData = gameData;
                     localStorage.setItem('arcaneUsers', JSON.stringify(users));
+                    if (window.FirebaseSync && window.FirebaseSync.ready) {
+                        window.FirebaseSync.save(cu, users[cu]).catch(() => {});
+                    }
                 }
             }
             loadHeroes();
@@ -2683,7 +2892,13 @@
                 const cu = localStorage.getItem('currentUser');
                 if (cu) {
                     const users = JSON.parse(localStorage.getItem('arcaneUsers') || '{}');
-                    if (users[cu]) { users[cu].gameData = gameData; localStorage.setItem('arcaneUsers', JSON.stringify(users)); }
+                    if (users[cu]) {
+                        users[cu].gameData = gameData;
+                        localStorage.setItem('arcaneUsers', JSON.stringify(users));
+                        if (window.FirebaseSync && window.FirebaseSync.ready) {
+                            window.FirebaseSync.save(cu, users[cu]).catch(() => {});
+                        }
+                    }
                 }
                 closeEditModal();
                 loadHeroes();
