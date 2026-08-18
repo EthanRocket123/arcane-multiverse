@@ -1039,6 +1039,7 @@
             <button class="tab-btn" onclick="switchTab('friends', this)">&#128101; Friends</button>
             <button class="tab-btn" onclick="switchTab('dbr', this)">&#127759; Battle Royale</button>
             <button class="tab-btn" onclick="switchTab('tournament', this)">&#127942; Tournament</button>
+            <button class="tab-btn" onclick="switchTab('void', this)">&#10024; Void</button>
             <button class="tab-btn" onclick="switchTab('settings', this)">Settings</button>
         </div>
 
@@ -1280,6 +1281,45 @@
                 <div id="trnBracketContent" style="min-width:600px;"></div>
                 <button id="trnNextMatchBtn" style="display:none;width:100%;padding:13px;background:linear-gradient(135deg,#7c3aed,#a855f7);color:white;border:none;border-radius:8px;font-size:15px;font-weight:bold;cursor:pointer;margin-top:14px;" onclick="trnRunNextMatch()">&#9876;&#65039; Play Next Match</button>
             </div>
+        </div>
+
+        <div id="void" class="tab-content">
+            <div style="min-height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px;">
+                <div style="margin-bottom:32px;">
+                    <div style="font-size:72px;margin-bottom:16px;animation:voidPulse 3s ease-in-out infinite;">✨</div>
+                    <h1 style="font-size:36px;color:#fff;margin-bottom:10px;text-shadow:0 0 30px rgba(168,85,247,0.9);letter-spacing:3px;">MULTIVERSAL VOID</h1>
+                    <p style="color:#b8a8d8;font-size:16px;font-style:italic;max-width:500px;line-height:1.6;">A new frontier beyond the known multiverse.<br>What lies within is yet to be revealed...</p>
+                </div>
+                <button onclick="startVoidJourney()" style="
+                    padding: 18px 48px;
+                    background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 50%, #a855f7 100%);
+                    color: white;
+                    border: 2px solid #a855f7;
+                    border-radius: 12px;
+                    font-size: 18px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    letter-spacing: 2px;
+                    text-transform: uppercase;
+                    box-shadow: 0 0 30px rgba(168,85,247,0.4), 0 0 60px rgba(168,85,247,0.15);
+                    transition: all 0.3s ease;
+                    animation: voidBtnGlow 2s ease-in-out infinite alternate;
+                " onmouseover="this.style.transform='scale(1.05)';this.style.boxShadow='0 0 50px rgba(168,85,247,0.7), 0 0 100px rgba(168,85,247,0.3)'"
+                   onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 0 30px rgba(168,85,247,0.4), 0 0 60px rgba(168,85,247,0.15)'">
+                    ⚡ Begin Journey
+                </button>
+                <p style="color:#7c3aed;font-size:12px;margin-top:20px;letter-spacing:1px;">MORE COMING SOON</p>
+            </div>
+            <style>
+                @keyframes voidPulse {
+                    0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+                    50% { transform: scale(1.15) rotate(10deg); opacity: 0.8; }
+                }
+                @keyframes voidBtnGlow {
+                    from { box-shadow: 0 0 20px rgba(168,85,247,0.3), 0 0 40px rgba(168,85,247,0.1); }
+                    to   { box-shadow: 0 0 40px rgba(168,85,247,0.7), 0 0 80px rgba(168,85,247,0.3); }
+                }
+            </style>
         </div>
 
         <div id="settings" class="tab-content">
@@ -5000,6 +5040,10 @@
 
         function exportAccount() {}
         function importAccount(event) {}
+
+        function startVoidJourney() {
+            if (window.showToast) window.showToast('The Void awaits... Coming soon! ⚡', 'info');
+        }
 
         // small beforeunload handling (preserving your earlier behavior)
         window.addEventListener('beforeunload', function(e) {
