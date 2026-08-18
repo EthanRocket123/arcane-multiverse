@@ -3889,12 +3889,20 @@
                 }
 
                 // Image/GIF � check extension or data: MIME type
-                const isImage = (lower.match(/\.(png|jpg|jpeg|gif|webp)$/) || url.startsWith('data:image/')) && !url.startsWith('data:video/');
-                const isVideo = lower.match(/\.(mp4|webm|ogg)$/)
+                // Check the full URL (before stripping query params) for extension too
+                const fullLower = url.toLowerCase();
+                const isImage = (lower.match(/\.(png|jpg|jpeg|gif|webp)(\?|$)/) || fullLower.match(/\.(png|jpg|jpeg|gif|webp)(\?|$)/) || url.startsWith('data:image/')) && !url.startsWith('data:video/');
+                const isVideo = lower.match(/\.(mp4|webm|ogg)(\?|$)/)
+                    || fullLower.match(/\.(mp4|webm|ogg)(\?|$)/)
                     || lower.includes('youtube.com')
+                    || lower.includes('youtu.be')
                     || lower.includes('vimeo.com')
+                    || lower.includes('cdn.discordapp.com')
+                    || lower.includes('media.discordapp.net')
+                    || lower.includes('streamable.com')
+                    || lower.includes('gyazo.com')
                     || url.startsWith('blob:')
-                    || url.startsWith('data:video/'); // base64 encoded uploaded videos
+                    || url.startsWith('data:video/');
 
                 if (isImage) {
                     const img = document.createElement('img');
@@ -3963,12 +3971,34 @@
                     return;
                 }
 
-                // Unknown: try image fallback
-                const fallbackImg = document.createElement('img');
-                fallbackImg.src = url;
-                fallbackImg.onload = () => setTimeout(finish, 1000);
-                fallbackImg.onerror = () => finish();
-                container.appendChild(fallbackImg);
+                // Unknown URL type — try as video first, then image
+                const fallbackVideo = document.createElement('video');
+                fallbackVideo.style.width = '100vw';
+                fallbackVideo.style.height = '100vh';
+                fallbackVideo.style.objectFit = 'contain';
+                fallbackVideo.src = url;
+                fallbackVideo.playsInline = true;
+                fallbackVideo.muted = true;
+                fallbackVideo.autoplay = true;
+                fallbackVideo.preload = 'auto';
+                fallbackVideo.addEventListener('contextmenu', e => e.preventDefault());
+                container.appendChild(fallbackVideo);
+                fallbackVideo.play().catch(() => {});
+                fallbackVideo.addEventListener('ended', () => finish());
+                fallbackVideo.addEventListener('error', () => {
+                    // Video failed — try as image
+                    fallbackVideo.remove();
+                    const fallbackImg = document.createElement('img');
+                    fallbackImg.src = url;
+                    fallbackImg.onload = () => setTimeout(finish, 2000);
+                    fallbackImg.onerror = () => finish();
+                    container.appendChild(fallbackImg);
+                });
+                // Timeout if nothing loads within 6 seconds
+                setTimeout(() => {
+                    if (container.querySelector('video,img')) return;
+                    finish();
+                }, 6000);
             });
         }
 
@@ -6247,7 +6277,8 @@
             const moves = (heroData.moves || []).map(m => ({
                 name: m.name || 'Strike',
                 damage: typeof m.damage === 'number' ? m.damage : 20,
-                conditions: m.conditions || []
+                conditions: (m.conditions || []).map(c => ({ ...c })),
+                media: (m.media || []).map(med => ({ ...med }))
             }));
             if (moves.length === 0) moves.push({ name: 'Punch', damage: 20, conditions: [] });
 
