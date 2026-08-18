@@ -2806,7 +2806,7 @@
                 grid.innerHTML = '<p style="color:#999">No heroes yet. Create one!';
                 return;
             }
-            heroes.forEach(h => {
+            heroes.forEach((h, idx) => {
                 const card = document.createElement('div');
                 card.className = 'hero-card';
                 card.innerHTML = `<h3>${escapeHtml(h.name)}</h3>
@@ -2817,7 +2817,7 @@
                   </div>
                   <div class="hero-actions">
                     <button class="edit-btn" onclick="openEditModal('${h.id}')">Edit</button>
-                    <button class="delete-btn" onclick="deleteHero('${h.id}')">Delete</button>
+                    <button class="delete-btn" onclick="deleteHeroByIndex(${idx})">Delete</button>
                   </div>`;
                 grid.appendChild(card);
             });
@@ -2852,6 +2852,29 @@
             populateHeroSelector();
         }
 
+        // Delete hero by its position in the array — works even when ids are duplicated
+        function deleteHeroByIndex(idx) {
+            if (!confirm('Delete this hero?')) return;
+            let gameData = JSON.parse(sessionStorage.getItem('gameData') || '{"heroes":[]}');
+            if (!gameData.heroes || idx < 0 || idx >= gameData.heroes.length) return;
+            gameData.heroes.splice(idx, 1);
+            sessionStorage.setItem('gameData', JSON.stringify(gameData));
+            const cu = localStorage.getItem('currentUser');
+            if (cu) {
+                const users = JSON.parse(localStorage.getItem('arcaneUsers') || '{}');
+                if (users[cu]) {
+                    users[cu].gameData = gameData;
+                    localStorage.setItem('arcaneUsers', JSON.stringify(users));
+                    // Also wipe Firestore so the duplicate doesn't come back on next login
+                    if (window.FirebaseSync && window.FirebaseSync.ready) {
+                        window.FirebaseSync.save(cu, users[cu]).catch(() => {});
+                    }
+                }
+            }
+            loadHeroes();
+            populateHeroSelector();
+        }
+
         function forceDeleteAllGlitched() {
             let gameData = JSON.parse(sessionStorage.getItem('gameData') || '{"heroes":[]}');
             const before = (gameData.heroes || []).length;
@@ -2876,14 +2899,17 @@
                 if (users[cu]) {
                     users[cu].gameData = gameData;
                     localStorage.setItem('arcaneUsers', JSON.stringify(users));
+                    // Save to Firestore immediately so duplicates don't return on next login
                     if (window.FirebaseSync && window.FirebaseSync.ready) {
-                        window.FirebaseSync.save(cu, users[cu]).catch(() => {});
+                        window.FirebaseSync.save(cu, users[cu]).then(ok => {
+                            if (ok && removed > 0) window.showToast && window.showToast('Removed ' + removed + ' duplicate/glitched hero' + (removed > 1 ? 'es' : '') + ' — cloud updated ☁️', 'success');
+                        }).catch(() => {});
                     }
                 }
             }
             loadHeroes();
             populateHeroSelector();
-            if (removed > 0) { if (window.showToast) window.showToast('Removed ' + removed + ' duplicate/glitched hero' + (removed > 1 ? 'es' : ''), 'success'); }
+            if (removed > 0) { if (window.showToast && !(window.FirebaseSync && window.FirebaseSync.ready)) window.showToast('Removed ' + removed + ' duplicate/glitched hero' + (removed > 1 ? 'es' : ''), 'success'); }
             else { if (window.showToast) window.showToast('No duplicates or glitched heroes found', 'info'); }
         }
 
