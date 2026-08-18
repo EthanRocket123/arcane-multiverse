@@ -1319,7 +1319,511 @@
                     from { box-shadow: 0 0 20px rgba(168,85,247,0.3), 0 0 40px rgba(168,85,247,0.1); }
                     to   { box-shadow: 0 0 40px rgba(168,85,247,0.7), 0 0 80px rgba(168,85,247,0.3); }
                 }
+
+                /* ── Void Cinematic Overlay ── */
+                #voidCinematic {
+                    position: fixed;
+                    inset: 0;
+                    background: #0a0015;
+                    z-index: 9999;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    overflow: hidden;
+                }
+                #voidCinematic .vc-stage {
+                    position: relative;
+                    width: 100%;
+                    max-width: 700px;
+                    height: 320px;
+                    display: flex;
+                    align-items: flex-end;
+                    justify-content: center;
+                    gap: 60px;
+                    padding-bottom: 20px;
+                }
+                .vc-hero {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    position: relative;
+                }
+                .vc-hero-img {
+                    width: 96px;
+                    height: 96px;
+                    border-radius: 50%;
+                    border: 3px solid #a855f7;
+                    object-fit: cover;
+                    box-shadow: 0 0 20px rgba(168,85,247,0.6);
+                    background: #2d1550;
+                }
+                .vc-hero-name {
+                    color: #d8b4fe;
+                    font-size: 13px;
+                    font-weight: bold;
+                    margin-top: 8px;
+                    text-shadow: 0 0 8px rgba(168,85,247,0.8);
+                    letter-spacing: 1px;
+                    text-align: center;
+                    max-width: 100px;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+                .vc-cage {
+                    position: absolute;
+                    top: -200px;
+                    font-size: 80px;
+                    line-height: 1;
+                    pointer-events: none;
+                    opacity: 0;
+                }
+                .vc-text {
+                    color: #fff;
+                    font-size: 22px;
+                    font-weight: bold;
+                    text-align: center;
+                    padding: 0 24px;
+                    max-width: 640px;
+                    text-shadow: 0 0 16px rgba(168,85,247,0.9);
+                    min-height: 64px;
+                    letter-spacing: 1px;
+                    opacity: 0;
+                }
+                .vc-stars {
+                    position: absolute;
+                    inset: 0;
+                    pointer-events: none;
+                    overflow: hidden;
+                }
+                .vc-star {
+                    position: absolute;
+                    width: 2px;
+                    height: 2px;
+                    border-radius: 50%;
+                    background: white;
+                    animation: vcStarTwinkle var(--dur, 3s) ease-in-out infinite;
+                    animation-delay: var(--delay, 0s);
+                    opacity: 0.6;
+                }
+                .vc-ground {
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    height: 4px;
+                    background: linear-gradient(90deg, transparent, #7c3aed, #a855f7, #7c3aed, transparent);
+                    box-shadow: 0 0 20px rgba(168,85,247,0.5);
+                }
+
+                /* bounce animation for peaceful scene */
+                @keyframes vcBounce {
+                    0%, 100% { transform: translateY(0) scaleY(1); }
+                    30%      { transform: translateY(-28px) scaleY(1.05); }
+                    55%      { transform: translateY(-6px) scaleY(0.97); }
+                    70%      { transform: translateY(-18px) scaleY(1.02); }
+                    85%      { transform: translateY(-4px) scaleY(0.99); }
+                }
+                /* cage drop */
+                @keyframes vcCageDrop {
+                    0%   { top: -200px; opacity: 0; }
+                    20%  { opacity: 1; }
+                    70%  { top: calc(100% - 220px); opacity: 1; }
+                    80%  { top: calc(100% - 200px); opacity: 1; }
+                    100% { top: calc(100% - 210px); opacity: 1; }
+                }
+                /* drag off screen to the left/right */
+                @keyframes vcDragLeft {
+                    from { transform: translateX(0); opacity: 1; }
+                    to   { transform: translateX(-160vw); opacity: 0; }
+                }
+                @keyframes vcDragRight {
+                    from { transform: translateX(0); opacity: 1; }
+                    to   { transform: translateX(160vw); opacity: 0; }
+                }
+                /* text fade in/out */
+                @keyframes vcFadeIn {
+                    from { opacity: 0; transform: translateY(12px); }
+                    to   { opacity: 1; transform: translateY(0); }
+                }
+                @keyframes vcFadeOut {
+                    from { opacity: 1; transform: translateY(0); }
+                    to   { opacity: 0; transform: translateY(-8px); }
+                }
+                /* star twinkle */
+                @keyframes vcStarTwinkle {
+                    0%, 100% { opacity: 0.2; transform: scale(1); }
+                    50%      { opacity: 1; transform: scale(1.8); }
+                }
+                /* whole overlay fade out at end */
+                @keyframes vcOverlayFadeOut {
+                    from { opacity: 1; }
+                    to   { opacity: 0; }
+                }
+                /* hero shake when cage hits */
+                @keyframes vcShake {
+                    0%, 100% { transform: translateX(0); }
+                    20%      { transform: translateX(-6px); }
+                    40%      { transform: translateX(6px); }
+                    60%      { transform: translateX(-4px); }
+                    80%      { transform: translateX(4px); }
+                }
+                /* Void gameplay area */
+                #voidGameplay {
+                    display: none;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: flex-start;
+                    padding: 20px 16px 40px;
+                    min-height: 60vh;
+                    width: 100%;
+                }
+
+                /* ── Void Roguelike UI ── */
+                .void-battle-header {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    margin-bottom: 18px;
+                    flex-wrap: wrap;
+                }
+                .void-battle-counter {
+                    font-size: 18px;
+                    font-weight: bold;
+                    color: #d8b4fe;
+                    letter-spacing: 1px;
+                }
+                .void-battle-type-badge {
+                    padding: 3px 12px;
+                    border-radius: 20px;
+                    font-size: 12px;
+                    font-weight: bold;
+                    letter-spacing: 1px;
+                    text-transform: uppercase;
+                    background: rgba(124,58,237,0.3);
+                    border: 1px solid #7c3aed;
+                    color: #c4b5fd;
+                }
+                .void-battle-type-badge.boss {
+                    background: rgba(220,38,38,0.3);
+                    border-color: #f87171;
+                    color: #fca5a5;
+                }
+                .void-battle-type-badge.miniboss {
+                    background: rgba(234,88,12,0.3);
+                    border-color: #fb923c;
+                    color: #fdba74;
+                }
+                .void-exit-btn {
+                    margin-left: auto;
+                    background: transparent;
+                    border: 1px solid #7c3aed;
+                    color: #b8a8d8;
+                    padding: 5px 14px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 12px;
+                    transition: all 0.2s;
+                }
+                .void-exit-btn:hover { background: rgba(220,38,38,0.2); border-color:#f87171; color:#fca5a5; }
+
+                .void-fighters-row {
+                    display: flex;
+                    align-items: stretch;
+                    gap: 12px;
+                    margin-bottom: 16px;
+                    width: 100%;
+                }
+                .void-fighter-card {
+                    flex: 1;
+                    background: rgba(30,10,60,0.7);
+                    border: 2px solid #7c3aed;
+                    border-radius: 12px;
+                    padding: 14px 12px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 8px;
+                    min-width: 0;
+                }
+                .void-enemy-card { border-color: #dc2626; }
+                .void-portrait-wrap { width: 72px; height: 72px; }
+                .void-portrait {
+                    width: 72px;
+                    height: 72px;
+                    border-radius: 50%;
+                    border: 3px solid #a855f7;
+                    object-fit: cover;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 36px;
+                    background: #1a0033;
+                    overflow: hidden;
+                }
+                .void-enemy-portrait { border-color: #f87171; }
+                .void-portrait img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+                .void-fighter-name {
+                    font-size: 15px;
+                    font-weight: bold;
+                    color: #e0e0e0;
+                    text-align: center;
+                    word-break: break-word;
+                }
+                .void-hp-bar-wrap { width: 100%; }
+                .void-hp-bar-bg {
+                    width: 100%;
+                    height: 10px;
+                    background: rgba(0,0,0,0.4);
+                    border-radius: 5px;
+                    overflow: hidden;
+                    margin-bottom: 3px;
+                }
+                .void-hp-bar {
+                    height: 100%;
+                    border-radius: 5px;
+                    transition: width 0.4s ease;
+                }
+                .void-hp-player { background: linear-gradient(90deg,#22c55e,#4ade80); }
+                .void-hp-enemy  { background: linear-gradient(90deg,#ef4444,#f87171); }
+                .void-hp-text { font-size: 12px; color: #b8a8d8; text-align: center; }
+                .void-gimmick-row {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 4px;
+                    justify-content: center;
+                }
+                .void-gimmick-badge {
+                    font-size: 10px;
+                    padding: 2px 8px;
+                    border-radius: 10px;
+                    font-weight: bold;
+                    letter-spacing: 0.5px;
+                    background: rgba(239,68,68,0.25);
+                    border: 1px solid #f87171;
+                    color: #fca5a5;
+                    white-space: nowrap;
+                }
+                .void-statuses {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 3px;
+                    justify-content: center;
+                    min-height: 16px;
+                }
+                .void-status-tag {
+                    font-size: 10px;
+                    padding: 1px 7px;
+                    border-radius: 8px;
+                    background: rgba(168,85,247,0.2);
+                    border: 1px solid #a855f7;
+                    color: #d8b4fe;
+                }
+                .void-vs-orb {
+                    font-size: 28px;
+                    display: flex;
+                    align-items: center;
+                    padding: 0 4px;
+                    flex-shrink: 0;
+                    animation: voidPulse 2s ease-in-out infinite;
+                }
+                .void-lower {
+                    display: flex;
+                    gap: 14px;
+                    width: 100%;
+                    align-items: flex-start;
+                }
+                .void-move-section {
+                    flex: 1;
+                    min-width: 0;
+                }
+                .void-turn-label {
+                    font-size: 14px;
+                    color: #a855f7;
+                    font-weight: bold;
+                    margin-bottom: 8px;
+                    letter-spacing: 1px;
+                }
+                .void-move-grid {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 7px;
+                }
+                .void-move-btn {
+                    width: 100%;
+                    padding: 9px 14px;
+                    background: rgba(60,20,100,0.7);
+                    border: 1px solid #7c3aed;
+                    border-radius: 7px;
+                    color: #e0e0e0;
+                    font-size: 13px;
+                    cursor: pointer;
+                    text-align: left;
+                    transition: all 0.2s ease;
+                    line-height: 1.3;
+                }
+                .void-move-btn:hover:not(:disabled) {
+                    background: rgba(124,58,237,0.4);
+                    border-color: #a855f7;
+                    transform: translateX(3px);
+                }
+                .void-move-btn:disabled {
+                    opacity: 0.45;
+                    cursor: not-allowed;
+                }
+                .void-move-btn .vmb-name { font-weight: bold; color: #d8b4fe; display: block; }
+                .void-move-btn .vmb-desc { color: #9ca3af; font-size: 11px; }
+                .void-log {
+                    width: 240px;
+                    max-width: 240px;
+                    min-width: 160px;
+                    height: 200px;
+                    overflow-y: auto;
+                    background: rgba(10,0,25,0.7);
+                    border: 1px solid rgba(124,58,237,0.4);
+                    border-radius: 8px;
+                    padding: 8px 10px;
+                    font-size: 12px;
+                    flex-shrink: 0;
+                }
+                .void-log-entry { padding: 2px 0; border-bottom: 1px solid rgba(124,58,237,0.1); }
+                .void-log-entry.vl-player { color: #86efac; }
+                .void-log-entry.vl-enemy  { color: #fca5a5; }
+                .void-log-entry.vl-info   { color: #c4b5fd; }
+                .void-log-entry.vl-heal   { color: #34d399; }
+                .void-log-entry.vl-system { color: #fbbf24; font-weight: bold; }
+
+                /* Overlay screens (victory / game over) */
+                .void-overlay-screen {
+                    position: absolute;
+                    inset: 0;
+                    background: rgba(10,0,25,0.92);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 100;
+                    border-radius: 12px;
+                }
+                #voidGameplay { position: relative; }
+                .void-overlay-box {
+                    background: rgba(30,10,60,0.98);
+                    border: 2px solid #7c3aed;
+                    border-radius: 16px;
+                    padding: 36px 40px;
+                    text-align: center;
+                    max-width: 420px;
+                    width: 90%;
+                    box-shadow: 0 0 40px rgba(124,58,237,0.4);
+                }
+                .void-victory-screen .void-overlay-box { border-color: #fbbf24; box-shadow: 0 0 40px rgba(251,191,36,0.3); }
+                .void-gameover-screen .void-overlay-box { border-color: #dc2626; box-shadow: 0 0 40px rgba(220,38,38,0.4); }
+                .void-overlay-icon { font-size: 56px; margin-bottom: 10px; }
+                .void-overlay-title { font-size: 28px; font-weight: bold; margin-bottom: 10px; color: #fff; }
+                .void-gold-text { color: #fbbf24; text-shadow: 0 0 20px rgba(251,191,36,0.6); }
+                .void-overlay-sub { color: #b8a8d8; font-size: 15px; margin-bottom: 8px; }
+                .void-overlay-heal { color: #34d399; font-size: 14px; margin-bottom: 20px; }
+                .void-big-btn {
+                    padding: 12px 36px;
+                    background: linear-gradient(135deg,#4c1d95,#7c3aed);
+                    color: white;
+                    border: 1px solid #a855f7;
+                    border-radius: 8px;
+                    font-size: 15px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    letter-spacing: 1px;
+                    transition: all 0.2s ease;
+                }
+                .void-big-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(124,58,237,0.4); }
+
+                @media (max-width: 600px) {
+                    .void-lower { flex-direction: column; }
+                    .void-log { width: 100%; max-width: 100%; height: 140px; }
+                    .void-fighters-row { flex-direction: column; }
+                    .void-vs-orb { transform: rotate(90deg); align-self: center; }
+                }
             </style>
+
+            <!-- Void Cinematic Overlay (injected by JS, hidden by default) -->
+            <div id="voidCinematic" style="display:none;"></div>
+
+            <!-- Void Roguelike Gameplay -->
+            <div id="voidGameplay">
+                <!-- Screen: Battle -->
+                <div id="voidBattleScreen" style="display:none;width:100%;max-width:860px;margin:0 auto;">
+                    <div id="voidBattleHeader" class="void-battle-header">
+                        <span id="voidBattleCounter" class="void-battle-counter">Battle 1</span>
+                        <span id="voidBattleType" class="void-battle-type-badge">Normal</span>
+                        <button onclick="exitVoidGameplay()" class="void-exit-btn">✕ Abandon Run</button>
+                    </div>
+                    <!-- Fighters -->
+                    <div class="void-fighters-row">
+                        <!-- Player card -->
+                        <div class="void-fighter-card void-player-card">
+                            <div class="void-portrait-wrap">
+                                <div id="voidPlayerPortrait" class="void-portrait">🧙</div>
+                            </div>
+                            <div class="void-fighter-name" id="voidPlayerName">Hero</div>
+                            <div class="void-hp-bar-wrap">
+                                <div class="void-hp-bar-bg">
+                                    <div id="voidPlayerHPBar" class="void-hp-bar void-hp-player"></div>
+                                </div>
+                                <div class="void-hp-text" id="voidPlayerHPText">100 / 100</div>
+                            </div>
+                            <div id="voidPlayerStatuses" class="void-statuses"></div>
+                        </div>
+
+                        <div class="void-vs-orb">⚡</div>
+
+                        <!-- Enemy card -->
+                        <div class="void-fighter-card void-enemy-card">
+                            <div class="void-portrait-wrap">
+                                <div id="voidEnemyPortrait" class="void-portrait void-enemy-portrait">👾</div>
+                            </div>
+                            <div class="void-fighter-name" id="voidEnemyName">Enemy</div>
+                            <div class="void-hp-bar-wrap">
+                                <div class="void-hp-bar-bg">
+                                    <div id="voidEnemyHPBar" class="void-hp-bar void-hp-enemy"></div>
+                                </div>
+                                <div class="void-hp-text" id="voidEnemyHPText">60 / 60</div>
+                            </div>
+                            <div id="voidEnemyGimmicks" class="void-gimmick-row"></div>
+                            <div id="voidEnemyStatuses" class="void-statuses"></div>
+                        </div>
+                    </div>
+
+                    <!-- Move section + log -->
+                    <div class="void-lower">
+                        <div class="void-move-section">
+                            <div id="voidTurnLabel" class="void-turn-label">Your Turn</div>
+                            <div id="voidMoveButtons" class="void-move-grid"></div>
+                        </div>
+                        <div id="voidLog" class="void-log"></div>
+                    </div>
+                </div>
+
+                <!-- Screen: Victory -->
+                <div id="voidVictoryScreen" style="display:none;" class="void-overlay-screen void-victory-screen">
+                    <div class="void-overlay-box">
+                        <div class="void-overlay-icon">🏆</div>
+                        <h2 class="void-overlay-title void-gold-text">Victory!</h2>
+                        <p id="voidVictoryMsg" class="void-overlay-sub"></p>
+                        <p id="voidVictoryHeal" class="void-overlay-heal"></p>
+                        <button id="voidContinueBtn" onclick="voidNextBattle()" class="void-big-btn">Continue ➜</button>
+                    </div>
+                </div>
+
+                <!-- Screen: Game Over -->
+                <div id="voidGameOverScreen" style="display:none;" class="void-overlay-screen void-gameover-screen">
+                    <div class="void-overlay-box">
+                        <div class="void-overlay-icon">💀</div>
+                        <h2 class="void-overlay-title" style="color:#f87171;">The Void Claims You</h2>
+                        <p id="voidGameOverMsg" class="void-overlay-sub"></p>
+                        <button onclick="exitVoidGameplay()" class="void-big-btn" style="background:linear-gradient(135deg,#7f1d1d,#dc2626);border-color:#f87171;">↩ Return to Void</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div id="settings" class="tab-content">
@@ -5042,10 +5546,896 @@
         function importAccount(event) {}
 
         function startVoidJourney() {
-            if (window.showToast) window.showToast('The Void awaits... Coming soon! ⚡', 'info');
+            // Pull hero roster from sessionStorage
+            const gameData = JSON.parse(sessionStorage.getItem('gameData') || '{"heroes":[]}');
+            const allHeroes = (gameData.heroes || []).filter(h => h && h.id && h.name);
+
+            if (allHeroes.length === 0) {
+                if (window.showToast) window.showToast('You need at least one hero in your roster to begin the Void journey!', 'info');
+                return;
+            }
+
+            // Pick up to 3 random heroes
+            const shuffled = allHeroes.slice().sort(() => Math.random() - 0.5);
+            const chosen = shuffled.slice(0, Math.min(3, shuffled.length));
+            // Pick starting hero (random from chosen)
+            const starter = chosen[Math.floor(Math.random() * chosen.length)];
+
+            // Hide the void landing screen
+            const voidLanding = document.querySelector('#void > div:first-of-type');
+            if (voidLanding) voidLanding.style.display = 'none';
+
+            // Build and mount the cinematic overlay
+            const overlay = document.getElementById('voidCinematic');
+            overlay.innerHTML = _buildVoidCinematicHTML(chosen);
+            overlay.style.display = 'flex';
+            overlay.style.flexDirection = 'column';
+            overlay.style.alignItems = 'center';
+            overlay.style.justifyContent = 'center';
+            overlay.style.opacity = '1';
+
+            // Run the cinematic sequence
+            _runVoidCinematic(overlay, chosen, starter, function() {
+                // Cinematic done — show gameplay area and start roguelike
+                overlay.style.display = 'none';
+                const gameplay = document.getElementById('voidGameplay');
+                gameplay.style.display = 'flex';
+                voidStartRun(starter);
+            });
         }
 
-        // small beforeunload handling (preserving your earlier behavior)
+        function exitVoidGameplay() {
+            voidResetState();
+            document.getElementById('voidGameplay').style.display = 'none';
+            const voidLanding = document.querySelector('#void > div:first-of-type');
+            if (voidLanding) voidLanding.style.display = 'flex';
+        }
+
+        function _buildVoidCinematicHTML(heroes) {
+            // Starfield
+            let stars = '<div class="vc-stars">';
+            for (let i = 0; i < 80; i++) {
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                const dur = (2 + Math.random() * 4).toFixed(1) + 's';
+                const delay = (Math.random() * 4).toFixed(1) + 's';
+                stars += `<div class="vc-star" style="left:${x}%;top:${y}%;--dur:${dur};--delay:${delay};"></div>`;
+            }
+            stars += '</div>';
+
+            // Hero sprites
+            let heroHTML = '';
+            heroes.forEach((h, i) => {
+                const imgSrc = h.portrait || '';
+                const imgEl = imgSrc
+                    ? `<img class="vc-hero-img" src="${imgSrc}" alt="${h.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                       <div class="vc-hero-img" style="display:none;align-items:center;justify-content:center;font-size:36px;background:#2d1550;">🧙</div>`
+                    : `<div class="vc-hero-img" style="display:flex;align-items:center;justify-content:center;font-size:36px;background:#2d1550;">🧙</div>`;
+
+                heroHTML += `
+                    <div class="vc-hero" id="vcHero${i}">
+                        <div class="vc-cage" id="vcCage${i}">🪤</div>
+                        ${imgEl}
+                        <div class="vc-hero-name">${h.name}</div>
+                    </div>`;
+            });
+
+            return `
+                ${stars}
+                <div class="vc-ground"></div>
+                <div class="vc-stage" id="vcStage">${heroHTML}</div>
+                <div class="vc-text" id="vcText"></div>`;
+        }
+
+        function _runVoidCinematic(overlay, heroes, starter, onDone) {
+            const textEl = overlay.querySelector('#vcText');
+
+            // Helper: animate text in, hold, then out
+            function showText(msg, holdMs) {
+                return new Promise(resolve => {
+                    textEl.textContent = msg;
+                    textEl.style.animation = 'none';
+                    textEl.style.opacity = '0';
+                    // Force reflow
+                    void textEl.offsetWidth;
+                    textEl.style.animation = 'vcFadeIn 0.6s ease forwards';
+                    setTimeout(() => {
+                        textEl.style.animation = 'vcFadeOut 0.5s ease forwards';
+                        setTimeout(resolve, 520);
+                    }, holdMs);
+                });
+            }
+
+            // Helper: wait ms
+            function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+            (async () => {
+                // ── Step 1: Heroes bounce in ──
+                heroes.forEach((h, i) => {
+                    const heroEl = overlay.querySelector('#vcHero' + i);
+                    if (!heroEl) return;
+                    heroEl.style.opacity = '0';
+                    heroEl.style.transform = 'translateY(60px)';
+                    setTimeout(() => {
+                        heroEl.style.transition = 'opacity 0.5s ease, transform 0.5s cubic-bezier(.22,1.5,.56,1)';
+                        heroEl.style.opacity = '1';
+                        heroEl.style.transform = 'translateY(0)';
+                    }, 200 + i * 180);
+                });
+                await wait(900 + heroes.length * 180);
+
+                // Start idle bounce
+                heroes.forEach((h, i) => {
+                    const heroEl = overlay.querySelector('#vcHero' + i);
+                    if (!heroEl) return;
+                    const imgEl = heroEl.querySelector('.vc-hero-img');
+                    if (imgEl) {
+                        imgEl.style.animation = `vcBounce ${1.2 + i * 0.15}s ease-in-out infinite`;
+                        imgEl.style.animationDelay = `${i * 0.2}s`;
+                    }
+                });
+
+                // ── Step 2: "Peaceful day" text ──
+                await showText('What a peaceful day in this universe...', 2400);
+                await wait(300);
+
+                // ── Step 3: Cages drop ──
+                heroes.forEach((h, i) => {
+                    const heroEl = overlay.querySelector('#vcHero' + i);
+                    if (!heroEl) return;
+                    // Stop bouncing
+                    const imgEl = heroEl.querySelector('.vc-hero-img');
+                    if (imgEl) imgEl.style.animation = 'none';
+
+                    const cage = overlay.querySelector('#vcCage' + i);
+                    if (cage) {
+                        cage.style.animation = 'vcCageDrop 0.7s cubic-bezier(.4,0,.2,1) forwards';
+                        cage.style.animationDelay = (i * 120) + 'ms';
+                    }
+                });
+
+                await wait(900);
+
+                // Shake heroes on cage impact
+                heroes.forEach((h, i) => {
+                    const heroEl = overlay.querySelector('#vcHero' + i);
+                    if (!heroEl) return;
+                    const imgEl = heroEl.querySelector('.vc-hero-img');
+                    if (imgEl) {
+                        imgEl.style.animation = 'vcShake 0.4s ease';
+                        imgEl.style.animationDelay = (i * 120) + 'ms';
+                    }
+                });
+
+                await wait(700);
+
+                // ── Step 4: Heroes dragged off screen ──
+                heroes.forEach((h, i) => {
+                    const heroEl = overlay.querySelector('#vcHero' + i);
+                    if (!heroEl) return;
+                    const dir = i % 2 === 0 ? 'vcDragLeft' : 'vcDragRight';
+                    heroEl.style.animation = `${dir} 0.8s ease-in forwards`;
+                    heroEl.style.animationDelay = (i * 100) + 'ms';
+                });
+
+                await wait(1100);
+
+                // ── Step 5: "Oh no!" text ──
+                await showText('Oh no! Your characters are captured!', 2600);
+                await wait(200);
+
+                // ── Step 6: Final hero reveal text ──
+                await showText(`It's up to ${starter.name} to save his friends and stop this evil threat!`, 3200);
+                await wait(300);
+
+                // ── Step 7: Fade out overlay ──
+                overlay.style.transition = 'opacity 0.8s ease';
+                overlay.style.opacity = '0';
+                await wait(850);
+
+                onDone();
+            })();
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // MULTIVERSAL VOID — ROGUELIKE ENGINE
+        // All functions prefixed void_ or _void to avoid conflicts.
+        // ═══════════════════════════════════════════════════════════════════
+
+        // ── Enemy roster (hardcoded fictional characters) ──────────────────
+        const _voidEnemyRoster = [
+            {
+                name: 'Darth Malgus',       portrait: '⚫',
+                flavor: 'A Sith lord consumed by darkness.',
+                tier: 'all',
+                moves: [
+                    { name: 'Force Choke',    damage: 22, conditions: [{ effect: 'deals 22 damage and stunned for 1 turn' }] },
+                    { name: 'Saber Slash',    damage: 18, conditions: [] },
+                    { name: 'Dark Side Surge', damage: 28, conditions: [{ effect: 'deals 28 damage' }] }
+                ]
+            },
+            {
+                name: 'Agent Smith',        portrait: '🕶️',
+                flavor: 'A program that refuses to be deleted.',
+                tier: 'all',
+                moves: [
+                    { name: 'Code Punch',     damage: 20, conditions: [] },
+                    { name: 'Replication',    damage: 15, conditions: [{ effect: 'deals 15 damage to all — extra 10 damage' }] },
+                    { name: 'System Crash',   damage: 30, conditions: [{ effect: '50% chance to do x2 damage and 50% to miss' }] }
+                ]
+            },
+            {
+                name: 'Ursula',             portrait: '🐙',
+                flavor: 'She wants your voice. And your health.',
+                tier: 'all',
+                moves: [
+                    { name: 'Tentacle Slam',  damage: 19, conditions: [] },
+                    { name: 'Dark Curse',     damage: 0,  conditions: [{ effect: 'stunned for 2 turns' }] },
+                    { name: 'Bargain Strike', damage: 25, conditions: [{ effect: 'deals 25 damage' }] }
+                ]
+            },
+            {
+                name: 'Megatron',           portrait: '🔫',
+                flavor: 'Decepticons, attack!',
+                tier: 'mid',
+                moves: [
+                    { name: 'Fusion Cannon',  damage: 32, conditions: [{ effect: 'deals 32 damage' }] },
+                    { name: 'Metal Fist',     damage: 24, conditions: [] },
+                    { name: 'Transform Strike',damage: 28, conditions: [{ effect: 'deals 28 damage' }] }
+                ]
+            },
+            {
+                name: 'The Joker',          portrait: '🃏',
+                flavor: 'Why so serious?',
+                tier: 'all',
+                moves: [
+                    { name: 'Joy Buzzer',     damage: 16, conditions: [{ effect: 'deals 16 damage and stunned for 1 turn' }] },
+                    { name: 'Laughing Gas',   damage: 20, conditions: [{ effect: '70% chance to deal 20 damage and 30% to miss' }] },
+                    { name: 'Chaos Strike',   damage: 24, conditions: [] }
+                ]
+            },
+            {
+                name: 'Sauron',             portrait: '👁️',
+                flavor: 'The Eye sees all.',
+                tier: 'mid',
+                moves: [
+                    { name: 'One Ring Curse', damage: 0,  conditions: [{ effect: 'stunned for 3 turns' }] },
+                    { name: 'Dark Mace',      damage: 30, conditions: [] },
+                    { name: 'Necromancy',     damage: 26, conditions: [{ effect: 'deals 26 damage and heals 10 HP' }] }
+                ]
+            },
+            {
+                name: 'Bowser',             portrait: '🐢',
+                flavor: 'King of the Koopas, terror of mushroom kingdoms.',
+                tier: 'all',
+                moves: [
+                    { name: 'Fire Breath',    damage: 22, conditions: [] },
+                    { name: 'Shell Slam',     damage: 26, conditions: [{ effect: 'deals 26 damage' }] },
+                    { name: 'Ground Pound',   damage: 20, conditions: [{ effect: 'deals 20 damage and stunned for 1 turn' }] }
+                ]
+            },
+            {
+                name: 'Maleficent',         portrait: '🧙‍♀️',
+                flavor: 'Mistress of all evil.',
+                tier: 'all',
+                moves: [
+                    { name: 'Sleep Curse',    damage: 0,  conditions: [{ effect: 'stunned for 2 turns' }] },
+                    { name: 'Dragon Fire',    damage: 28, conditions: [{ effect: 'deals 28 damage' }] },
+                    { name: 'Dark Thorns',    damage: 20, conditions: [] }
+                ]
+            },
+            {
+                name: 'Thanos',             portrait: '🟣',
+                flavor: 'Perfectly balanced, as all things should be.',
+                tier: 'hard',
+                moves: [
+                    { name: 'Power Stone',    damage: 35, conditions: [{ effect: 'deals 35 damage' }] },
+                    { name: 'Space Gauntlet', damage: 28, conditions: [{ effect: 'deals 28 damage and stunned for 1 turn' }] },
+                    { name: 'Infinity Crush', damage: 0,  conditions: [{ effect: '40% chance to one-shot and 60% to deal 30 damage' }] }
+                ]
+            },
+            {
+                name: 'Carnage',            portrait: '🕷️',
+                flavor: 'Maximum carnage.',
+                tier: 'mid',
+                moves: [
+                    { name: 'Symbiote Slash', damage: 26, conditions: [] },
+                    { name: 'Tendon Whip',    damage: 22, conditions: [{ effect: 'deals 22 damage and stunned for 1 turn' }] },
+                    { name: 'Bloodlust',      damage: 30, conditions: [{ effect: 'deals 30 damage' }] }
+                ]
+            },
+            {
+                name: 'Ganondorf',          portrait: '🔱',
+                flavor: 'The Gerudo King of Evil.',
+                tier: 'mid',
+                moves: [
+                    { name: 'Darkness Blade', damage: 28, conditions: [] },
+                    { name: 'Thunder Stomp',  damage: 24, conditions: [{ effect: 'deals 24 damage and stunned for 2 turns' }] },
+                    { name: 'Dark Orb',       damage: 26, conditions: [{ effect: 'deals 26 damage' }] }
+                ]
+            },
+            {
+                name: 'Doctor Doom',        portrait: '🤖',
+                flavor: 'Doom is absolute.',
+                tier: 'hard',
+                moves: [
+                    { name: 'Doom Blast',     damage: 32, conditions: [{ effect: 'deals 32 damage' }] },
+                    { name: 'Sorcery Strike', damage: 26, conditions: [] },
+                    { name: 'Iron Fist',      damage: 28, conditions: [{ effect: '60% chance to deal 28 damage and 40% to do x2 damage' }] }
+                ]
+            },
+            {
+                name: 'Queen of Hearts',    portrait: '❤️',
+                flavor: 'Off with their heads!',
+                tier: 'all',
+                moves: [
+                    { name: 'Royal Command',  damage: 20, conditions: [] },
+                    { name: 'Card Soldiers',  damage: 18, conditions: [{ effect: 'deals 18 damage' }] },
+                    { name: 'Off With It',    damage: 0,  conditions: [{ effect: '20% chance to one-shot and 80% to deal 22 damage' }] }
+                ]
+            },
+            {
+                name: 'Voldemort',          portrait: '🐍',
+                flavor: 'He who must not be named.',
+                tier: 'hard',
+                moves: [
+                    { name: 'Avada Kedavra', damage: 0,  conditions: [{ effect: '35% chance to one-shot and 65% to deal 30 damage' }] },
+                    { name: 'Crucio',         damage: 0,  conditions: [{ effect: 'stunned for 3 turns' }] },
+                    { name: 'Dark Magic',     damage: 28, conditions: [{ effect: 'deals 28 damage' }] }
+                ]
+            },
+            {
+                name: 'Lex Luthor',         portrait: '🧠',
+                flavor: 'The greatest criminal mind of our time.',
+                tier: 'mid',
+                moves: [
+                    { name: 'Kryptonite Ray', damage: 30, conditions: [{ effect: 'deals 30 damage' }] },
+                    { name: 'Power Armor',    damage: 24, conditions: [] },
+                    { name: 'Genius Trap',    damage: 20, conditions: [{ effect: 'deals 20 damage and stunned for 2 turns' }] }
+                ]
+            }
+        ];
+
+        // ── Gimmick definitions ─────────────────────────────────────────────
+        const _voidGimmicks = {
+            statusImmune: { label: '🛡️ Status Immune', desc: 'Status effects have no effect.' },
+            stunImmune:   { label: '⚡ Stun Immune',   desc: 'Cannot be stunned.' },
+            ohkoImmune:   { label: '💎 OHKO Immune',   desc: 'One-shot moves deal heavy damage instead.' },
+            enraged:      { label: '🔥 Enraged',       desc: 'Below 50% HP: damage doubled.' },
+            regen:        { label: '💚 Regen',         desc: 'Recovers a small amount of HP each turn.' }
+        };
+
+        // ── Roguelike run state ─────────────────────────────────────────────
+        let _voidState = null;
+
+        function voidResetState() {
+            _voidState = null;
+            const bs = document.getElementById('voidBattleScreen');
+            const vs = document.getElementById('voidVictoryScreen');
+            const gs = document.getElementById('voidGameOverScreen');
+            if (bs) bs.style.display = 'none';
+            if (vs) vs.style.display = 'none';
+            if (gs) gs.style.display = 'none';
+        }
+
+        // ── Entry point: called after cinematic ────────────────────────────
+        function voidStartRun(heroData) {
+            const moves = (heroData.moves || []).map(m => ({
+                name: m.name || 'Strike',
+                damage: typeof m.damage === 'number' ? m.damage : 20,
+                conditions: m.conditions || []
+            }));
+            if (moves.length === 0) moves.push({ name: 'Punch', damage: 20, conditions: [] });
+
+            _voidState = {
+                battleNum: 0,
+                hero: {
+                    name:       heroData.name,
+                    portrait:   heroData.portrait || '',
+                    maxHealth:  100,
+                    health:     100,
+                    skippedTurns: 0,
+                    statuses:   [],
+                    moves
+                },
+                enemy: null,
+                playerTurn: true,
+                busy: false
+            };
+
+            document.getElementById('voidBattleScreen').style.display = 'block';
+            document.getElementById('voidVictoryScreen').style.display = 'none';
+            document.getElementById('voidGameOverScreen').style.display = 'none';
+            _voidRenderPlayer();
+            voidBeginNextBattle();
+        }
+
+        // ── Build an enemy for the current battle ──────────────────────────
+        function _voidBuildEnemy(battleNum) {
+            const isMiniBoss = battleNum > 0 && battleNum % 15 === 0 && battleNum % 25 !== 0;
+            const isBoss     = battleNum > 0 && battleNum % 25 === 0;
+
+            // Choose enemy template
+            let pool;
+            if (battleNum <= 14)  pool = _voidEnemyRoster.filter(e => e.tier === 'all' || e.tier === 'easy');
+            else if (battleNum <= 49) pool = _voidEnemyRoster.filter(e => e.tier !== 'hard');
+            else                  pool = _voidEnemyRoster.slice(); // all tiers
+            if (pool.length === 0) pool = _voidEnemyRoster.slice();
+
+            // Optionally mix in player's roster heroes as fodder (non-boss normal battles)
+            if (!isMiniBoss && !isBoss && Math.random() < 0.35) {
+                const gameData = JSON.parse(sessionStorage.getItem('gameData') || '{"heroes":[]}');
+                const roster = (gameData.heroes || []).filter(h => h && h.name && h.moves && h.moves.length > 0);
+                if (roster.length > 0) {
+                    const rosterHero = roster[Math.floor(Math.random() * roster.length)];
+                    pool = [{ name: rosterHero.name, portrait: rosterHero.portrait || '⚔️', tier: 'all', moves: rosterHero.moves }];
+                }
+            }
+
+            const template = pool[Math.floor(Math.random() * pool.length)];
+
+            // Scale HP
+            let baseHP;
+            if (battleNum <= 14)      baseHP = 30 + Math.floor(Math.random() * 31);       // 30-60
+            else if (battleNum <= 49) baseHP = 70 + Math.floor(Math.random() * 51);        // 70-120
+            else                      baseHP = 130 + Math.floor(Math.random() * 71);       // 130-200
+
+            if (isMiniBoss) baseHP = Math.round(baseHP * 1.6);
+            if (isBoss)     baseHP = Math.round(baseHP * 2.4);
+
+            // Scale moves
+            let moveScale;
+            if (battleNum <= 14)      moveScale = 0.7;
+            else if (battleNum <= 49) moveScale = 1.0;
+            else                      moveScale = 1.5;
+            if (isMiniBoss) moveScale *= 1.3;
+            if (isBoss)     moveScale *= 1.8;
+
+            const scaledMoves = template.moves.map(m => ({
+                name: m.name,
+                damage: Math.round(m.damage * moveScale),
+                conditions: m.conditions.map(c => ({
+                    ...c,
+                    effect: c.effect ? _voidScaleEffectNumbers(c.effect, moveScale) : ''
+                }))
+            }));
+
+            // Assign gimmicks
+            const gimmickKeys = Object.keys(_voidGimmicks);
+            const numGimmicks = isBoss ? 3 : isMiniBoss ? 1 : (Math.random() < 0.25 ? 1 : 0);
+            const shuffledG = gimmickKeys.slice().sort(() => Math.random() - 0.5);
+            const assignedGimmicks = shuffledG.slice(0, numGimmicks);
+
+            return {
+                name:         isBoss ? `⚠ ${template.name}` : isMiniBoss ? `★ ${template.name}` : template.name,
+                portrait:     template.portrait,
+                maxHealth:    baseHP,
+                health:       baseHP,
+                skippedTurns: 0,
+                statuses:     [],
+                moves:        scaledMoves,
+                gimmicks:     assignedGimmicks,
+                type:         isBoss ? 'boss' : isMiniBoss ? 'miniboss' : 'normal'
+            };
+        }
+
+        // Scale numeric damage values inside effect strings
+        function _voidScaleEffectNumbers(text, scale) {
+            return text.replace(/\b(\d+)\s*damage\b/g, (match, num) => {
+                return Math.round(parseInt(num) * scale) + ' damage';
+            }).replace(/\bheals?\s+(\d+)/gi, (match, num) => {
+                return match.replace(num, Math.round(parseInt(num) * scale));
+            });
+        }
+
+        // ── Start the next battle ───────────────────────────────────────────
+        function voidBeginNextBattle() {
+            const s = _voidState;
+            s.battleNum++;
+            s.playerTurn = true;
+            s.busy = false;
+
+            s.enemy = _voidBuildEnemy(s.battleNum);
+
+            // Reset player stun/statuses between battles
+            s.hero.skippedTurns = 0;
+            s.hero.statuses = [];
+
+            // Update header
+            document.getElementById('voidBattleCounter').textContent = `Battle ${s.battleNum}`;
+            const badge = document.getElementById('voidBattleType');
+            badge.textContent = s.enemy.type === 'boss' ? 'BOSS' : s.enemy.type === 'miniboss' ? 'MINI-BOSS' : 'Normal';
+            badge.className = 'void-battle-type-badge' + (s.enemy.type === 'boss' ? ' boss' : s.enemy.type === 'miniboss' ? ' miniboss' : '');
+
+            // Clear log
+            const log = document.getElementById('voidLog');
+            log.innerHTML = '';
+            _voidLog(`Battle ${s.battleNum} begins!`, 'system');
+            _voidLog(`Enemy: ${s.enemy.name}`, 'info');
+            if (s.enemy.gimmicks.length > 0) {
+                _voidLog(`Gimmicks: ${s.enemy.gimmicks.map(g => _voidGimmicks[g].label).join(', ')}`, 'info');
+            }
+
+            _voidRenderEnemy();
+            _voidRenderPlayer();
+            _voidShowPlayerTurn();
+        }
+
+        // ── Render helpers ──────────────────────────────────────────────────
+        function _voidRenderPlayer() {
+            const h = _voidState.hero;
+            const pct = Math.max(0, Math.min(100, (h.health / h.maxHealth) * 100));
+            document.getElementById('voidPlayerHPBar').style.width = pct + '%';
+            document.getElementById('voidPlayerHPText').textContent = `${Math.max(0,h.health)} / ${h.maxHealth}`;
+            document.getElementById('voidPlayerName').textContent = h.name;
+
+            // Portrait
+            const pp = document.getElementById('voidPlayerPortrait');
+            if (h.portrait && (h.portrait.startsWith('data:') || h.portrait.startsWith('http') || h.portrait.startsWith('/'))) {
+                pp.innerHTML = `<img src="${h.portrait}" alt="${h.name}" onerror="this.parentElement.textContent='🧙'">`;
+            } else if (h.portrait) {
+                pp.textContent = h.portrait;
+            } else {
+                pp.textContent = '🧙';
+            }
+
+            // Statuses
+            const st = document.getElementById('voidPlayerStatuses');
+            st.innerHTML = '';
+            if (h.skippedTurns > 0) st.innerHTML += `<span class="void-status-tag">😵 Stunned (${h.skippedTurns})</span>`;
+            (h.statuses || []).forEach(s => {
+                if (s.requirement) st.innerHTML += `<span class="void-status-tag">${s.requirement}</span>`;
+            });
+        }
+
+        function _voidRenderEnemy() {
+            const e = _voidState.enemy;
+            const pct = Math.max(0, Math.min(100, (e.health / e.maxHealth) * 100));
+            document.getElementById('voidEnemyHPBar').style.width = pct + '%';
+            document.getElementById('voidEnemyHPText').textContent = `${Math.max(0,e.health)} / ${e.maxHealth}`;
+            document.getElementById('voidEnemyName').textContent = e.name;
+
+            // Portrait
+            const ep = document.getElementById('voidEnemyPortrait');
+            if (e.portrait && (e.portrait.startsWith('data:') || e.portrait.startsWith('http') || e.portrait.startsWith('/'))) {
+                ep.innerHTML = `<img src="${e.portrait}" alt="${e.name}" onerror="this.parentElement.textContent='👾'">`;
+            } else if (e.portrait) {
+                ep.textContent = e.portrait;
+            } else {
+                ep.textContent = '👾';
+            }
+
+            // Gimmick badges
+            const gr = document.getElementById('voidEnemyGimmicks');
+            gr.innerHTML = e.gimmicks.map(g => `<span class="void-gimmick-badge">${_voidGimmicks[g].label}</span>`).join('');
+
+            // Statuses
+            const st = document.getElementById('voidEnemyStatuses');
+            st.innerHTML = '';
+            if (e.skippedTurns > 0) st.innerHTML += `<span class="void-status-tag">😵 Stunned (${e.skippedTurns})</span>`;
+            (e.statuses || []).forEach(s => {
+                if (s.requirement) st.innerHTML += `<span class="void-status-tag">${s.requirement}</span>`;
+            });
+        }
+
+        function _voidLog(text, type = 'info') {
+            const log = document.getElementById('voidLog');
+            if (!log) return;
+            const d = document.createElement('div');
+            d.className = `void-log-entry vl-${type}`;
+            d.textContent = text;
+            log.appendChild(d);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        // ── Show player move buttons ────────────────────────────────────────
+        function _voidShowPlayerTurn() {
+            const s = _voidState;
+            const lbl = document.getElementById('voidTurnLabel');
+            const grid = document.getElementById('voidMoveButtons');
+
+            if (s.hero.skippedTurns > 0) {
+                s.hero.skippedTurns--;
+                _voidLog(`${s.hero.name} is stunned and skips their turn!`, 'info');
+                lbl.textContent = 'Stunned — skipping turn...';
+                grid.innerHTML = '';
+                setTimeout(() => _voidEnemyTurn(), 1200);
+                return;
+            }
+
+            lbl.textContent = 'Your Turn — Choose a move:';
+            grid.innerHTML = '';
+            s.hero.moves.forEach((move, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'void-move-btn';
+                const condText = move.conditions && move.conditions.length > 0
+                    ? move.conditions.map(c => c.effect || '').filter(Boolean).join('; ')
+                    : '';
+                btn.innerHTML = `<span class="vmb-name">${move.name}</span>${condText ? `<span class="vmb-desc">${condText}</span>` : ''}`;
+                btn.onclick = () => { if (!s.busy) _voidPlayerUsesMove(i); };
+                grid.appendChild(btn);
+            });
+        }
+
+        function _voidDisableMoveButtons() {
+            document.querySelectorAll('.void-move-btn').forEach(b => b.disabled = true);
+            document.getElementById('voidTurnLabel').textContent = 'Waiting...';
+        }
+
+        // ── Player attacks ──────────────────────────────────────────────────
+        async function _voidPlayerUsesMove(moveIdx) {
+            const s = _voidState;
+            if (s.busy) return;
+            s.busy = true;
+            _voidDisableMoveButtons();
+
+            const move = s.hero.moves[moveIdx];
+            await _voidApplyMove(s.hero, s.enemy, move, 'player');
+
+            // Enemy regen
+            if (s.enemy.gimmicks.includes('regen') && s.enemy.health > 0) {
+                const regenAmt = Math.ceil(s.enemy.maxHealth * 0.04);
+                s.enemy.health = Math.min(s.enemy.maxHealth, s.enemy.health + regenAmt);
+                _voidLog(`${s.enemy.name} regenerates ${regenAmt} HP!`, 'heal');
+            }
+
+            _voidRenderPlayer();
+            _voidRenderEnemy();
+
+            if (s.enemy.health <= 0) {
+                await _voidDelay(300);
+                _voidShowVictory();
+                return;
+            }
+
+            await _voidDelay(600);
+            _voidEnemyTurn();
+        }
+
+        // ── Enemy attacks ───────────────────────────────────────────────────
+        async function _voidEnemyTurn() {
+            const s = _voidState;
+            document.getElementById('voidTurnLabel').textContent = `${s.enemy.name}'s turn...`;
+
+            if (s.enemy.skippedTurns > 0) {
+                s.enemy.skippedTurns--;
+                _voidLog(`${s.enemy.name} is stunned and skips their turn!`, 'info');
+                _voidRenderEnemy();
+                await _voidDelay(800);
+                s.busy = false;
+                _voidShowPlayerTurn();
+                return;
+            }
+
+            const move = s.enemy.moves[Math.floor(Math.random() * s.enemy.moves.length)];
+            await _voidApplyMove(s.enemy, s.hero, move, 'enemy');
+
+            // Enemy regen (when it attacks)
+            if (s.enemy.gimmicks.includes('regen') && s.enemy.health > 0) {
+                const regenAmt = Math.ceil(s.enemy.maxHealth * 0.04);
+                s.enemy.health = Math.min(s.enemy.maxHealth, s.enemy.health + regenAmt);
+                _voidLog(`${s.enemy.name} regenerates ${regenAmt} HP!`, 'heal');
+            }
+
+            _voidRenderPlayer();
+            _voidRenderEnemy();
+
+            if (s.hero.health <= 0) {
+                await _voidDelay(300);
+                _voidShowGameOver();
+                return;
+            }
+
+            await _voidDelay(600);
+            s.busy = false;
+            _voidShowPlayerTurn();
+        }
+
+        // ── Core move applier (mirrors applyMove logic, void-scoped) ───────
+        async function _voidApplyMove(actor, target, move, logType) {
+            _voidLog(`${actor.name} used ${move.name}!`, logType);
+
+            const isEnemy = (actor === _voidState.enemy);
+            const actorGimmicks = isEnemy ? actor.gimmicks : [];
+            const targetGimmicks = isEnemy ? [] : _voidState.enemy.gimmicks;
+
+            let missChance = 0, oneShot = false, noDamage = false, selfKO = false;
+            let extraDamageFlat = 0, healActor = 0, forcedDamage = null;
+            let damageMultiplier = 1;
+            let skipTurns = 0;
+
+            if (move.conditions && move.conditions.length > 0) {
+                for (const cond of move.conditions) {
+                    const txt = (cond.effect || '').toLowerCase();
+
+                    // Probability branch parser (mirrors applyMove)
+                    const probClauses = [];
+                    const probRe = /(\d+)\s*%\s*(?:chance\s+)?(?:to\s+)?((?:(?!\d+\s*%).)+)/g;
+                    let pm;
+                    while ((pm = probRe.exec(txt)) !== null) {
+                        probClauses.push({ chance: parseInt(pm[1]) / 100, clause: pm[2].trim() });
+                    }
+
+                    if (probClauses.length > 0) {
+                        for (const { chance, clause } of probClauses) {
+                            if (Math.random() >= chance) continue;
+                            if (/one.?shot|1.?shot|insta.?kill|instant(ly)?\s*kill|eliminat/.test(clause)) oneShot = true;
+                            else if (/self.?ko|self.?destruct|kills?\s*yourself|kills?\s*the\s*user|faints?\s*yourself/.test(clause)) selfKO = true;
+                            else if (/miss/.test(clause)) missChance = 1;
+                            else if (/no damage|zero damage/.test(clause)) noDamage = true;
+                            else {
+                                const mm = clause.match(/[x×](\d+(?:\.\d+)?)\s*damage|(\d+(?:\.\d+)?)\s*[x×]\s*damage/)
+                                        || clause.match(/\b(double|triple|quadruple)\b/);
+                                if (mm) {
+                                    const w = mm[4];
+                                    if (w === 'double') damageMultiplier = Math.max(damageMultiplier, 2);
+                                    else if (w === 'triple') damageMultiplier = Math.max(damageMultiplier, 3);
+                                    else if (w === 'quadruple') damageMultiplier = Math.max(damageMultiplier, 4);
+                                    else { const n = parseFloat(mm[1]||mm[2]); if (!isNaN(n)) damageMultiplier = Math.max(damageMultiplier, n); }
+                                } else {
+                                    const edm = clause.match(/(\d+)\s+damage/);
+                                    if (edm) forcedDamage = parseInt(edm[1]);
+                                    if (/\bheavy\b|\bmassive\b|\bdevastating\b|\bextreme\b/.test(clause)) damageMultiplier = Math.max(damageMultiplier, 3);
+                                }
+                            }
+                        }
+                        continue;
+                    }
+
+                    // Normal parsing
+                    const missMatch = txt.match(/(\d+)\s*(?:%|percent)[^\n]*miss/)
+                        || txt.match(/miss[^\n]*(\d+)\s*(?:%|percent)/)
+                        || txt.match(/(\d+)\s*(?:in|out of)\s*(\d+)[^\n]*miss/);
+                    if (missMatch) missChance = missMatch[2] ? parseInt(missMatch[1])/parseInt(missMatch[2]) : parseInt(missMatch[1])/100;
+                    if (!missMatch && /miss.*half|half.*miss|50.?50.*miss/.test(txt)) missChance = 0.5;
+                    if (/no damage|deal[s]? no|zero damage/.test(txt)) noDamage = true;
+                    if (/one.?shot|1.?shot|insta.?kill|instant(ly)? kill|eliminat/.test(txt)) oneShot = true;
+                    if (/self.?ko|kills?\s*yourself|faints?\s*yourself/.test(txt)) selfKO = true;
+
+                    const exactDmg = txt.match(/(?:deal[s]?|do(?:es)?)\s+(\d+)\s+damage/) || txt.match(/damage\s+of\s+(\d+)/);
+                    if (exactDmg) forcedDamage = parseInt(exactDmg[1]);
+
+                    const healMatch = txt.match(/(?:heal[s]?|restore[s]?|recover[s]?|gain[s]?)\s+(\d+)/);
+                    if (healMatch) healActor = parseInt(healMatch[1]);
+
+                    const extraMatch = txt.match(/(?:\+|extra|additional|bonus)\s*(\d+)\s*(?:extra\s*)?damage/);
+                    if (extraMatch) extraDamageFlat = parseInt(extraMatch[1]);
+
+                    const inlineMult = txt.match(/[x×](\d+(?:\.\d+)?)\s*damage|(\d+(?:\.\d+)?)\s*[x×]\s*damage/)
+                        || txt.match(/\b(double|triple|quadruple)\b.*damage/);
+                    if (inlineMult && !exactDmg) {
+                        const w = inlineMult[3];
+                        if (w === 'double') damageMultiplier = Math.max(damageMultiplier, 2);
+                        else if (w === 'triple') damageMultiplier = Math.max(damageMultiplier, 3);
+                        else if (w === 'quadruple') damageMultiplier = Math.max(damageMultiplier, 4);
+                        else { const n = parseFloat(inlineMult[1]||inlineMult[2]); if (!isNaN(n)) damageMultiplier = Math.max(damageMultiplier, n); }
+                    }
+
+                    if (!exactDmg && /\bheavy\s+damage\b|\bmassive\s+damage\b|\bdevastating\s+damage\b|\bextreme\s+damage\b/.test(txt))
+                        damageMultiplier = Math.max(damageMultiplier, 3);
+
+                    // Stun / skip-turns parsing
+                    const isSkip = /skip|stun|can'?t?\s*attack|cannot\s*attack|paralyz|incapacitat|immobiliz|frozen?|freeze/.test(txt);
+                    if (isSkip) {
+                        const tm = txt.match(/(\d+)\s*(?:-\s*(\d+))?\s*turns?/);
+                        if (tm) {
+                            const min = parseInt(tm[1]), max = tm[2] ? parseInt(tm[2]) : min;
+                            skipTurns = Math.max(skipTurns, min + Math.floor(Math.random()*(max-min+1)));
+                        } else skipTurns = Math.max(skipTurns, 1);
+                    }
+                }
+            }
+
+            const missed = missChance > 0 && Math.random() < missChance;
+            if (missed) {
+                _voidLog(`${actor.name}'s attack missed!`, 'info');
+            } else {
+                // Gimmick: OHKO Immune
+                if (oneShot && targetGimmicks.includes('ohkoImmune')) {
+                    _voidLog(`${target.name} resists the one-shot! (OHKO Immune)`, 'info');
+                    oneShot = false;
+                    damageMultiplier = Math.max(damageMultiplier, 3);
+                }
+
+                if (oneShot) {
+                    target.health = 0;
+                    _voidLog(`${actor.name} landed a one-shot on ${target.name}!`, logType);
+                } else if (!noDamage) {
+                    let damage;
+                    if (forcedDamage !== null && forcedDamage > 0) {
+                        damage = forcedDamage;
+                    } else {
+                        const rawBase = (typeof move.damage === 'number' && move.damage > 0) ? move.damage : 20;
+                        const base = Math.max(20, rawBase);
+                        const variance = 0.85 + Math.random() * 0.3;
+                        damage = Math.max(1, Math.round(base * variance * damageMultiplier));
+                    }
+                    damage += extraDamageFlat;
+
+                    // Gimmick: Enraged (enemy below 50% HP, damage doubled)
+                    if (isEnemy && actorGimmicks.includes('enraged') && actor.health < actor.maxHealth * 0.5) {
+                        damage = Math.round(damage * 2);
+                        _voidLog(`${actor.name} is ENRAGED! Attack power doubled!`, 'enemy');
+                    }
+
+                    target.health = Math.max(0, target.health - damage);
+                    if (damage > 0) _voidLog(`${target.name} took ${damage} damage.`, 'info');
+                }
+
+                if (healActor > 0) {
+                    actor.health = Math.min(actor.maxHealth, actor.health + healActor);
+                    _voidLog(`${actor.name} recovered ${healActor} HP!`, logType);
+                }
+
+                if (selfKO) {
+                    actor.health = 0;
+                    _voidLog(`${actor.name} is taken out by their own attack!`, logType);
+                }
+
+                // Apply stun
+                if (skipTurns > 0 && target.health > 0) {
+                    // Gimmick: Stun Immune (enemy only)
+                    if (targetGimmicks.includes('stunImmune')) {
+                        _voidLog(`${target.name} resists the stun! (Stun Immune)`, 'info');
+                    } else if (targetGimmicks.includes('statusImmune')) {
+                        _voidLog(`${target.name} resists the status effect! (Status Immune)`, 'info');
+                    } else {
+                        target.skippedTurns = (target.skippedTurns || 0) + skipTurns;
+                        const tw = skipTurns === 1 ? 'turn' : 'turns';
+                        _voidLog(`${target.name} is stunned and will skip ${skipTurns} ${tw}!`, logType);
+                    }
+                }
+
+                // Apply non-stun status conditions (gimmick: statusImmune blocks them on enemy)
+                if (move.conditions) {
+                    for (const cond of move.conditions) {
+                        const sName = (cond.requirement || '').trim();
+                        if (sName && target.health > 0) {
+                            if (targetGimmicks.includes('statusImmune')) {
+                                _voidLog(`${target.name} resists ${sName}! (Status Immune)`, 'info');
+                            } else {
+                                target.statuses = target.statuses || [];
+                                target.statuses.push({ requirement: sName });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // ── Victory screen ──────────────────────────────────────────────────
+        function _voidShowVictory() {
+            const s = _voidState;
+            const healAmt = Math.floor(10 + Math.random() * 11); // 10-20 HP
+            s.hero.health = Math.min(s.hero.maxHealth, s.hero.health + healAmt);
+            _voidRenderPlayer();
+
+            document.getElementById('voidVictoryMsg').textContent =
+                `You defeated ${s.enemy.name}! (Battle ${s.battleNum})`;
+            document.getElementById('voidVictoryHeal').textContent =
+                `Recovered ${healAmt} HP. HP: ${s.hero.health} / ${s.hero.maxHealth}`;
+            document.getElementById('voidVictoryScreen').style.display = 'flex';
+        }
+
+        function voidNextBattle() {
+            document.getElementById('voidVictoryScreen').style.display = 'none';
+            voidBeginNextBattle();
+        }
+
+        // ── Game Over screen ────────────────────────────────────────────────
+        function _voidShowGameOver() {
+            const s = _voidState;
+            document.getElementById('voidGameOverMsg').textContent =
+                `${s.hero.name} fell after ${s.battleNum} battle${s.battleNum !== 1 ? 's' : ''}. The Void is eternal.`;
+            document.getElementById('voidGameOverScreen').style.display = 'flex';
+        }
+
+        // ── Utility ─────────────────────────────────────────────────────────
+        function _voidDelay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // END VOID ROGUELIKE ENGINE
+        // ═══════════════════════════════════════════════════════════════════
         window.addEventListener('beforeunload', function(e) {
             if (sessionStorage.getItem('userType') === 'guest') {
                 e.preventDefault();
