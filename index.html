@@ -1737,6 +1737,160 @@
                 }
                 .void-big-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(124,58,237,0.4); }
 
+                /* ── Rest Screen (tile grid) ─────────────────────────────── */
+                .vrest-overlay {
+                    position: absolute;
+                    inset: 0;
+                    background: rgba(8,0,20,0.96);
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 100;
+                    border-radius: 12px;
+                    padding: 24px 16px;
+                    gap: 18px;
+                }
+                .vrest-header {
+                    text-align: center;
+                }
+                .vrest-header h2 {
+                    font-size: 24px;
+                    font-weight: bold;
+                    color: #fbbf24;
+                    text-shadow: 0 0 18px rgba(251,191,36,0.6);
+                    margin: 0 0 4px;
+                }
+                .vrest-header p {
+                    color: #b8a8d8;
+                    font-size: 13px;
+                    margin: 0;
+                }
+                .vrest-grid {
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 14px;
+                    max-width: 380px;
+                    width: 100%;
+                }
+                .vrest-tile {
+                    aspect-ratio: 1;
+                    perspective: 600px;
+                    cursor: pointer;
+                }
+                .vrest-tile.locked {
+                    cursor: not-allowed;
+                    opacity: 0.35;
+                    filter: grayscale(1);
+                }
+                .vrest-tile.locked .vrest-tile-inner,
+                .vrest-tile.used .vrest-tile-inner {
+                    pointer-events: none;
+                }
+                .vrest-tile-inner {
+                    width: 100%;
+                    height: 100%;
+                    position: relative;
+                    transform-style: preserve-3d;
+                    transition: transform 0.6s ease;
+                    border-radius: 10px;
+                }
+                .vrest-tile.flipped .vrest-tile-inner {
+                    transform: rotateY(180deg);
+                }
+                .vrest-tile-front,
+                .vrest-tile-back {
+                    position: absolute;
+                    inset: 0;
+                    border-radius: 10px;
+                    backface-visibility: hidden;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 28px;
+                    font-weight: bold;
+                    border: 2px solid rgba(168,85,247,0.5);
+                }
+                .vrest-tile-front {
+                    background: linear-gradient(135deg, #1a0a2e, #2d1050);
+                    color: rgba(168,85,247,0.7);
+                    box-shadow: inset 0 0 20px rgba(124,58,237,0.2);
+                }
+                .vrest-tile-back {
+                    transform: rotateY(180deg);
+                    background: #1a0a2e;
+                    border-color: rgba(168,85,247,0.3);
+                }
+                /* color themes for the back face */
+                .vrest-tile-back.vrest-color-red-light { background: linear-gradient(135deg,#7f1d1d,#ef4444); border-color:#fca5a5; box-shadow: 0 0 18px rgba(239,68,68,0.6); }
+                .vrest-tile-back.vrest-color-red-dark  { background: linear-gradient(135deg,#450a0a,#b91c1c); border-color:#f87171; box-shadow: 0 0 22px rgba(185,28,28,0.8); }
+                .vrest-tile-back.vrest-color-red-boss  { background: linear-gradient(135deg,#1a0000,#7f1d1d); border-color:#dc2626; box-shadow: 0 0 30px rgba(220,38,38,1); animation: vrestBossGlow 0.6s ease-in-out infinite alternate; }
+                .vrest-tile-back.vrest-color-green-light { background: linear-gradient(135deg,#14532d,#16a34a); border-color:#4ade80; box-shadow: 0 0 18px rgba(74,222,128,0.6); }
+                .vrest-tile-back.vrest-color-green-dark  { background: linear-gradient(135deg,#052e16,#15803d); border-color:#86efac; box-shadow: 0 0 28px rgba(134,239,172,0.9); }
+                .vrest-tile-back.vrest-color-blue   { background: linear-gradient(135deg,#1e3a5f,#2563eb); border-color:#60a5fa; box-shadow: 0 0 18px rgba(96,165,250,0.6); }
+                .vrest-tile-back.vrest-color-yellow { background: linear-gradient(135deg,#78350f,#d97706); border-color:#fbbf24; box-shadow: 0 0 18px rgba(251,191,36,0.6); }
+                .vrest-tile-back.vrest-color-purple { background: linear-gradient(135deg,#3b0764,#7c3aed); border-color:#c084fc; box-shadow: 0 0 18px rgba(192,132,252,0.6); }
+                .vrest-tile-back.vrest-color-gold   { background: linear-gradient(135deg,#92400e,#f59e0b); border-color:#fde68a; box-shadow: 0 0 28px rgba(253,230,138,0.9); }
+                /* hover glow (non-locked, non-used tiles) */
+                .vrest-tile:not(.locked):not(.used):not(.flipped) .vrest-tile-inner {
+                    transition: transform 0.6s ease, box-shadow 0.2s ease;
+                }
+                .vrest-tile:not(.locked):not(.used):not(.flipped):hover .vrest-tile-inner {
+                    box-shadow: 0 0 22px rgba(168,85,247,0.7);
+                    transform: scale(1.06);
+                }
+                /* rise-and-land animation layered on top of the Y-rotation */
+                @keyframes vrestRise {
+                    0%   { transform: translateY(0)    rotateY(0deg); }
+                    20%  { transform: translateY(-50px) rotateY(90deg); }
+                    50%  { transform: translateY(-50px) rotateY(180deg); }
+                    80%  { transform: translateY(-10px) rotateY(180deg); }
+                    100% { transform: translateY(0)    rotateY(180deg); }
+                }
+                .vrest-tile-inner.vrest-animating {
+                    animation: vrestRise 0.75s ease forwards;
+                }
+                @keyframes vrestBossGlow {
+                    from { box-shadow: 0 0 20px rgba(220,38,38,0.7), 0 0 5px #fff; }
+                    to   { box-shadow: 0 0 50px rgba(220,38,38,1),   0 0 15px #ff6666; }
+                }
+                @keyframes vrestSirenFlash {
+                    0%, 100% { background: rgba(0,0,0,0); }
+                    50%       { background: rgba(220,38,38,0.18); }
+                }
+                .vrest-siren-flash {
+                    animation: vrestSirenFlash 0.4s ease-in-out infinite;
+                }
+                .vrest-subtitle {
+                    color: #b8a8d8;
+                    font-size: 14px;
+                    text-align: center;
+                    transition: opacity 0.3s;
+                }
+                .vrest-subtitle.picked { opacity: 0.35; }
+                .vrest-effect-msg {
+                    font-size: 15px;
+                    font-weight: bold;
+                    text-align: center;
+                    min-height: 22px;
+                    color: #fbbf24;
+                    text-shadow: 0 0 12px rgba(251,191,36,0.5);
+                    transition: opacity 0.4s;
+                }
+                .vrest-continue-btn {
+                    padding: 12px 36px;
+                    background: linear-gradient(135deg,#4c1d95,#7c3aed);
+                    color: white;
+                    border: 1px solid #a855f7;
+                    border-radius: 8px;
+                    font-size: 15px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    letter-spacing: 1px;
+                    transition: all 0.2s ease;
+                }
+                .vrest-continue-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(124,58,237,0.4); }
+
                 @media (max-width: 600px) {
                     .void-lower { flex-direction: column; }
                     .void-log { width: 100%; max-width: 100%; height: 140px; }
@@ -1803,15 +1957,16 @@
                     </div>
                 </div>
 
-                <!-- Screen: Victory -->
-                <div id="voidVictoryScreen" style="display:none;" class="void-overlay-screen void-victory-screen">
-                    <div class="void-overlay-box">
-                        <div class="void-overlay-icon">🏆</div>
-                        <h2 class="void-overlay-title void-gold-text">Victory!</h2>
-                        <p id="voidVictoryMsg" class="void-overlay-sub"></p>
-                        <p id="voidVictoryHeal" class="void-overlay-heal"></p>
-                        <button id="voidContinueBtn" onclick="voidNextBattle()" class="void-big-btn">Continue ➜</button>
+                <!-- Screen: Victory / Rest Grid -->
+                <div id="voidVictoryScreen" style="display:none;" class="vrest-overlay">
+                    <div class="vrest-header">
+                        <h2 id="vrestTitle">⚔️ Battle Complete!</h2>
+                        <p id="vrestSubheader">You emerged victorious.</p>
                     </div>
+                    <p class="vrest-subtitle" id="vrestSubtitle">Choose your fate — pick a tile</p>
+                    <div class="vrest-grid" id="vrestGrid"></div>
+                    <p class="vrest-effect-msg" id="vrestEffectMsg"></p>
+                    <button class="vrest-continue-btn" id="vrestContinueBtn" style="display:none;" onclick="voidNextBattle()">Continue ➜</button>
                 </div>
 
                 <!-- Screen: Game Over -->
@@ -6352,6 +6507,11 @@
                     }
                     damage += extraDamageFlat;
 
+                    // Yellow tile: permanent damage boost (player only)
+                    if (!isEnemy && s.hero.damageBoost && s.hero.damageBoost > 1.0) {
+                        damage = Math.round(damage * s.hero.damageBoost);
+                    }
+
                     // Gimmick: Enraged (enemy below 50% HP, damage doubled)
                     if (isEnemy && actorGimmicks.includes('enraged') && actor.health < actor.maxHealth * 0.5) {
                         damage = Math.round(damage * 2);
@@ -6403,18 +6563,202 @@
             }
         }
 
-        // ── Victory screen ──────────────────────────────────────────────────
+        // ── Victory / Rest Screen ───────────────────────────────────────────
         function _voidShowVictory() {
             const s = _voidState;
-            const healAmt = Math.floor(10 + Math.random() * 11); // 10-20 HP
-            s.hero.health = Math.min(s.hero.maxHealth, s.hero.health + healAmt);
-            _voidRenderPlayer();
+            // Determine active tile count: boss battles get only 1, otherwise 5
+            const isBoss = (s.battleNum % 15 === 0 || s.battleNum % 25 === 0);
+            const activeCount = isBoss ? 1 : 5;
 
-            document.getElementById('voidVictoryMsg').textContent =
-                `You defeated ${s.enemy.name}! (Battle ${s.battleNum})`;
-            document.getElementById('voidVictoryHeal').textContent =
-                `Recovered ${healAmt} HP. HP: ${s.hero.health} / ${s.hero.maxHealth}`;
+            // Update header
+            document.getElementById('vrestTitle').textContent =
+                `⚔️ Battle ${s.battleNum} Complete!`;
+            document.getElementById('vrestSubheader').textContent =
+                `You defeated ${s.enemy.name}!`;
+            document.getElementById('vrestSubtitle').textContent =
+                isBoss ? 'A powerful foe falls — one reward awaits.' : 'Choose your fate — pick a tile';
+            document.getElementById('vrestSubtitle').classList.remove('picked');
+            document.getElementById('vrestEffectMsg').textContent = '';
+            document.getElementById('vrestContinueBtn').style.display = 'none';
+
+            // Build and render grid
+            _voidBuildRestGrid(activeCount);
+
             document.getElementById('voidVictoryScreen').style.display = 'flex';
+        }
+
+        // Build 6-tile data array and render into #vrestGrid
+        function _voidBuildRestGrid(activeCount) {
+            const s = _voidState;
+            const nextBattle = s.battleNum + 1;
+            const nextIsBoss     = nextBattle % 25 === 0;
+            const nextIsMiniBoss = !nextIsBoss && nextBattle % 15 === 0;
+
+            // Red variant depends on the NEXT battle
+            const redVariant = nextIsBoss ? 'red-boss' : nextIsMiniBoss ? 'red-dark' : 'red-light';
+
+            // Base pool always includes one red and one of each utility color
+            let pool = [redVariant, 'green-light', 'green-dark', 'yellow', 'purple', 'blue'];
+            // Rare gold: ~10% chance replaces one non-red slot
+            if (Math.random() < 0.10) {
+                const nonRedIdxs = pool.map((c,i) => i).filter(i => !pool[i].startsWith('red'));
+                if (nonRedIdxs.length > 0) {
+                    pool[nonRedIdxs[Math.floor(Math.random() * nonRedIdxs.length)]] = 'gold';
+                }
+            }
+            // Shuffle pool
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+
+            const tiles = [];
+            for (let i = 0; i < 6; i++) {
+                tiles.push({ color: i < activeCount ? pool[i] : null, locked: i >= activeCount });
+            }
+            // Shuffle tile positions so locked isn't always last
+            for (let i = tiles.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+            }
+
+            const colorLabel = {
+                'red-light':'⚔️','red-dark':'⚔️','red-boss':'💀',
+                'green-light':'💚','green-dark':'💚',
+                yellow:'💛',purple:'💜',blue:'💙',gold:'✨'
+            };
+
+            const grid = document.getElementById('vrestGrid');
+            grid.innerHTML = '';
+            tiles.forEach((t, idx) => {
+                const tile = document.createElement('div');
+                tile.className = 'vrest-tile' + (t.locked ? ' locked' : '');
+                tile.dataset.color = t.color || '';
+                tile.dataset.idx = idx;
+                if (!t.locked) tile.addEventListener('click', () => _voidFlipTile(idx, tile));
+                tile.innerHTML = `
+                    <div class="vrest-tile-inner">
+                        <div class="vrest-tile-front">${t.locked ? '🔒' : '?'}</div>
+                        <div class="vrest-tile-back vrest-color-${t.color || ''}">
+                            ${t.locked ? '' : (colorLabel[t.color] || '?')}
+                        </div>
+                    </div>`;
+                grid.appendChild(tile);
+            });
+        }
+
+        // Flip a tile: rise + spin animation, then apply effect
+        async function _voidFlipTile(idx, tileEl) {
+            // Prevent double-clicks or clicking after one tile is already picked
+            if (tileEl.classList.contains('used') || tileEl.classList.contains('locked')) return;
+            const grid = document.getElementById('vrestGrid');
+            // Lock all tiles immediately
+            grid.querySelectorAll('.vrest-tile:not(.locked)').forEach(t => t.classList.add('used'));
+            document.getElementById('vrestSubtitle').classList.add('picked');
+
+            const inner = tileEl.querySelector('.vrest-tile-inner');
+            const color = tileEl.dataset.color;
+
+            // Trigger rise-and-flip animation
+            inner.classList.add('vrest-animating');
+            await _voidDelay(750);
+            inner.classList.remove('vrest-animating');
+
+            // Snap to flipped state (animation already ended at rotateY 180deg)
+            tileEl.classList.add('flipped');
+
+            // Apply effect after a beat
+            await _voidDelay(200);
+            _voidApplyTileEffect(color, tileEl);
+        }
+
+        // Stub effect handler — fill in real logic later
+        function _voidApplyTileEffect(color, tileEl) {
+            const s = _voidState;
+            const effectEl = document.getElementById('vrestEffectMsg');
+            const continueBtn = document.getElementById('vrestContinueBtn');
+            const overlay = document.getElementById('voidVictoryScreen');
+
+            let msg = '';
+
+            if (color === 'red-light') {
+                // Dramatic text, then continue leads into normal battle (already queued as next battle)
+                msg = '⚔️ Oh, new foes have appeared... get ready...';
+                effectEl.style.color = '#fca5a5';
+            }
+            else if (color === 'red-dark') {
+                msg = '🔴 Looks like this enemy is stronger than the last... be on your guard...';
+                effectEl.style.color = '#f87171';
+            }
+            else if (color === 'red-boss') {
+                // Siren flash effect on overlay
+                effectEl.style.color = '#dc2626';
+                msg = '🚨 ⚠️ WARNING WARNING — A boss is coming... you ready?';
+                overlay.classList.add('vrest-siren-flash');
+                // Play a "siren" tone using Web Audio if available
+                try {
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    const playBeep = (freq, start, dur) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.connect(gain); gain.connect(ctx.destination);
+                        osc.frequency.value = freq;
+                        osc.type = 'sawtooth';
+                        gain.gain.setValueAtTime(0.18, ctx.currentTime + start);
+                        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
+                        osc.start(ctx.currentTime + start);
+                        osc.stop(ctx.currentTime + start + dur + 0.05);
+                    };
+                    // Two-tone siren: 880Hz then 660Hz, repeat twice
+                    for (let i = 0; i < 3; i++) {
+                        playBeep(880, i * 0.5,       0.22);
+                        playBeep(660, i * 0.5 + 0.25, 0.22);
+                    }
+                    setTimeout(() => ctx.close(), 2000);
+                } catch(e) { /* audio not available */ }
+                // Stop siren flash after 3 seconds
+                setTimeout(() => overlay.classList.remove('vrest-siren-flash'), 3000);
+            }
+            else if (color === 'green-light') {
+                const healAmt = Math.round(s.hero.maxHealth * 0.5);
+                const before = s.hero.health;
+                s.hero.health = Math.min(s.hero.maxHealth, s.hero.health + healAmt);
+                const actualHeal = s.hero.health - before;
+                _voidRenderPlayer();
+                effectEl.style.color = '#4ade80';
+                msg = `💚 Oh... you found a healing station... +${actualHeal} HP restored! (${s.hero.health}/${s.hero.maxHealth})`;
+            }
+            else if (color === 'green-dark') {
+                s.hero.health = s.hero.maxHealth;
+                _voidRenderPlayer();
+                effectEl.style.color = '#86efac';
+                msg = '💚💚 Ohhh... you hit the heal lottery! Hero is fully restored!';
+            }
+            else if (color === 'yellow') {
+                // Permanent damage boost stored on hero object
+                if (!s.hero.damageBoost) s.hero.damageBoost = 1.0;
+                s.hero.damageBoost = parseFloat((s.hero.damageBoost * 1.15).toFixed(4)); // +15% per yellow tile
+                effectEl.style.color = '#fbbf24';
+                msg = `💛 Your power grows! Damage permanently boosted! (×${s.hero.damageBoost.toFixed(2)})`;
+            }
+            else if (color === 'blue') {
+                effectEl.style.color = '#60a5fa';
+                msg = '💙 Blue tile — coming soon!';
+            }
+            else if (color === 'purple') {
+                effectEl.style.color = '#c084fc';
+                msg = '💜 Purple tile — coming soon!';
+            }
+            else if (color === 'gold') {
+                effectEl.style.color = '#fde68a';
+                msg = '✨ Gold tile — coming soon!';
+            }
+            else {
+                msg = '❔ Unknown tile.';
+            }
+
+            effectEl.textContent = msg;
+            continueBtn.style.display = 'inline-block';
         }
 
         function voidNextBattle() {
