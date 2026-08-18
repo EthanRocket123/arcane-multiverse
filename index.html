@@ -5879,7 +5879,7 @@
                     heroHTML += `
                         <div class="vc-hero" id="vcEscapeHero">
                             ${imgEl}
-                            <div class="vc-hero-name" style="color:#86efac;text-shadow:0 0 8px rgba(134,239,172,0.8);">${h.name}<br><span style="font-size:10px;letter-spacing:1px;color:#a3e635;">★ STARTER</span></div>
+                            <div class="vc-hero-name" style="color:#86efac;text-shadow:0 0 8px rgba(134,239,172,0.8);">${h.name}</div>
                         </div>`;
                 } else {
                     // Captured hero — has chain cage
@@ -6016,8 +6016,39 @@
                 await showText('Oh no! Your characters are captured!', 2600);
                 await wait(200);
 
-                // -- Step 6: Final hero reveal text --
+                // ── Step 6: Final hero reveal — show starter portrait + text ──
+                // Resolve starter portrait (handles idb: URLs)
+                let starterPortrait = starter.portrait || '';
+                if (starterPortrait.startsWith('idb:')) {
+                    starterPortrait = (typeof resolveMediaUrl === 'function' ? await resolveMediaUrl(starterPortrait) : '') || '';
+                }
+
+                // Build a portrait overlay that fades in above the text
+                const portraitOverlay = document.createElement('div');
+                portraitOverlay.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:12px;opacity:0;transition:opacity 0.6s ease;';
+                portraitOverlay.innerHTML = `
+                    <div style="width:96px;height:96px;border-radius:50%;border:3px solid #a855f7;background:#2d1550;overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:0 0 24px rgba(168,85,247,0.8);">
+                        ${starterPortrait
+                            ? `<img src="${starterPortrait}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='🧙';this.parentElement.style.fontSize='36px';">`
+                            : `<span style="font-size:36px;">🧙</span>`}
+                    </div>`;
+
+                // Insert portrait overlay before the text element
+                const vcTextEl = overlay.querySelector('#vcText');
+                if (vcTextEl && vcTextEl.parentNode) {
+                    vcTextEl.parentNode.insertBefore(portraitOverlay, vcTextEl);
+                }
+                // Fade portrait in
+                await wait(50);
+                portraitOverlay.style.opacity = '1';
+                await wait(400);
+
+                // Now show the text
                 await showText(`It's up to ${starter.name} to save his friends and stop this evil threat!`, 3200);
+
+                // Fade portrait out with text
+                portraitOverlay.style.opacity = '0';
+                setTimeout(() => { if (portraitOverlay.parentNode) portraitOverlay.parentNode.removeChild(portraitOverlay); }, 600);
                 await wait(300);
 
                 // -- Step 7: Fade out overlay --
@@ -6693,20 +6724,24 @@
         async function _voidApplyMove(actor, target, move, logType) {
             _voidLog(`${actor.name} used ${move.name}!`, logType);
 
-            const isEnemy = (actor === _voidState.enemy);
+            const s = _voidState;
+            const isEnemy = (actor === s.enemy);
 
-            // Play move animation if available
+            // Play move animation if available — skip idb: URLs in Void (device-local, would stall for 2.5s)
             if (!isEnemy) {
                 let voidMedia = null;
                 if (move.media && move.media.length > 0) {
-                    const validMedia = move.media.filter(m => m && m.url);
+                    // Only use internet URLs — skip idb: (device-local, not available cross-device)
+                    const validMedia = move.media.filter(m => m && m.url && !m.url.startsWith('idb:'));
                     if (validMedia.length > 0) {
                         const pick = validMedia[Math.floor(Math.random() * validMedia.length)];
                         voidMedia = { url: pick.url, hasAudio: !!pick.hasAudio };
                     }
                 } else if (move.conditions && move.conditions.length > 0) {
                     const cond = move.conditions[0];
-                    if (cond && cond.animation) voidMedia = { url: cond.animation, hasAudio: !!cond.hasAudio };
+                    if (cond && cond.animation && !cond.animation.startsWith('idb:')) {
+                        voidMedia = { url: cond.animation, hasAudio: !!cond.hasAudio };
+                    }
                 }
                 if (voidMedia) {
                     try { await showBattleAnimation(voidMedia); } catch(e) {}
@@ -6714,7 +6749,7 @@
             }
 
             const actorGimmicks = isEnemy ? actor.gimmicks : [];
-            const targetGimmicks = isEnemy ? [] : _voidState.enemy.gimmicks;
+            const targetGimmicks = isEnemy ? [] : s.enemy.gimmicks;
 
             let missChance = 0, oneShot = false, noDamage = false, selfKO = false;
             let extraDamageFlat = 0, healActor = 0, forcedDamage = null;
