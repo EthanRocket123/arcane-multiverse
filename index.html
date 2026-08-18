@@ -3871,15 +3871,10 @@
                 if (url.startsWith('idb:')) {
                     url = await resolveMediaUrl(url) || '';
                     if (!url) {
-                        // File only exists on the device it was uploaded from
-                        // Show a brief "unavailable" notice then continue battle
-                        container.innerHTML = '<div style="color:#f59e0b;font-size:16px;font-weight:bold;text-align:center;padding:40px;">?? Media not available on this device.<br><span style="font-size:13px;color:#b8a8d8;">Uploaded files only play on the device they were uploaded from.<br>Use an internet URL for cross-device playback.</span></div>';
-                        overlay.style.display = 'flex';
-                        setTimeout(() => {
-                            container.innerHTML = '';
-                            overlay.style.display = 'none';
-                            resolve();
-                        }, 2500);
+                        // File not available on this device — skip silently, don't block gameplay
+                        container.innerHTML = '';
+                        overlay.style.display = 'none';
+                        resolve();
                         return;
                     }
                 }
@@ -6017,39 +6012,45 @@
                 await wait(200);
 
                 // ── Step 6: Final hero reveal — show starter portrait + text ──
-                // Resolve starter portrait (handles idb: URLs)
+                // Resolve starter portrait (all URL types)
                 let starterPortrait = starter.portrait || '';
                 if (starterPortrait.startsWith('idb:')) {
-                    starterPortrait = (typeof resolveMediaUrl === 'function' ? await resolveMediaUrl(starterPortrait) : '') || '';
+                    starterPortrait = (await resolveMediaUrl(starterPortrait)) || '';
                 }
 
-                // Build a portrait overlay that fades in above the text
-                const portraitOverlay = document.createElement('div');
-                portraitOverlay.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:12px;opacity:0;transition:opacity 0.6s ease;';
-                portraitOverlay.innerHTML = `
-                    <div style="width:96px;height:96px;border-radius:50%;border:3px solid #a855f7;background:#2d1550;overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:0 0 24px rgba(168,85,247,0.8);">
+                // Build an absolutely-centered portrait card over the cinematic
+                const portraitCard = document.createElement('div');
+                portraitCard.style.cssText = `
+                    position:absolute;
+                    top:50%;left:50%;
+                    transform:translate(-50%,-60%);
+                    display:flex;flex-direction:column;align-items:center;gap:10px;
+                    opacity:0;transition:opacity 0.7s ease;
+                    z-index:10;
+                `;
+                portraitCard.innerHTML = `
+                    <div style="width:128px;height:128px;border-radius:50%;border:4px solid #a855f7;background:#2d1550;overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:0 0 32px rgba(168,85,247,0.9),0 0 64px rgba(168,85,247,0.4);">
                         ${starterPortrait
-                            ? `<img src="${starterPortrait}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='🧙';this.parentElement.style.fontSize='36px';">`
-                            : `<span style="font-size:36px;">🧙</span>`}
-                    </div>`;
+                            ? `<img src="${starterPortrait}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.parentElement.innerHTML='<span style=\\'font-size:48px;\\'>🧙</span>';">`
+                            : `<span style="font-size:48px;">🧙</span>`}
+                    </div>
+                    <div style="color:#d8b4fe;font-size:18px;font-weight:bold;text-shadow:0 0 12px rgba(168,85,247,0.9);text-align:center;max-width:200px;">${starter.name}</div>
+                `;
+                overlay.appendChild(portraitCard);
 
-                // Insert portrait overlay before the text element
-                const vcTextEl = overlay.querySelector('#vcText');
-                if (vcTextEl && vcTextEl.parentNode) {
-                    vcTextEl.parentNode.insertBefore(portraitOverlay, vcTextEl);
-                }
-                // Fade portrait in
+                // Fade portrait card in
                 await wait(50);
-                portraitOverlay.style.opacity = '1';
-                await wait(400);
+                portraitCard.style.opacity = '1';
+                await wait(600);
 
-                // Now show the text
+                // Show the reveal text
                 await showText(`It's up to ${starter.name} to save his friends and stop this evil threat!`, 3200);
 
-                // Fade portrait out with text
-                portraitOverlay.style.opacity = '0';
-                setTimeout(() => { if (portraitOverlay.parentNode) portraitOverlay.parentNode.removeChild(portraitOverlay); }, 600);
-                await wait(300);
+                // Fade portrait card out
+                portraitCard.style.opacity = '0';
+                await wait(700);
+                if (portraitCard.parentNode) portraitCard.parentNode.removeChild(portraitCard);
+                await wait(100);
 
                 // -- Step 7: Fade out overlay --
                 overlay.style.transition = 'opacity 0.8s ease';
@@ -6727,21 +6728,18 @@
             const s = _voidState;
             const isEnemy = (actor === s.enemy);
 
-            // Play move animation if available — skip idb: URLs in Void (device-local, would stall for 2.5s)
+            // Play move animation if available (same logic as arena applyMove)
             if (!isEnemy) {
                 let voidMedia = null;
                 if (move.media && move.media.length > 0) {
-                    // Only use internet URLs — skip idb: (device-local, not available cross-device)
-                    const validMedia = move.media.filter(m => m && m.url && !m.url.startsWith('idb:'));
+                    const validMedia = move.media.filter(m => m && m.url);
                     if (validMedia.length > 0) {
                         const pick = validMedia[Math.floor(Math.random() * validMedia.length)];
                         voidMedia = { url: pick.url, hasAudio: !!pick.hasAudio };
                     }
                 } else if (move.conditions && move.conditions.length > 0) {
                     const cond = move.conditions[0];
-                    if (cond && cond.animation && !cond.animation.startsWith('idb:')) {
-                        voidMedia = { url: cond.animation, hasAudio: !!cond.hasAudio };
-                    }
+                    if (cond && cond.animation) voidMedia = { url: cond.animation, hasAudio: !!cond.hasAudio };
                 }
                 if (voidMedia) {
                     try { await showBattleAnimation(voidMedia); } catch(e) {}
