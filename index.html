@@ -6277,7 +6277,7 @@
             const moves = (heroData.moves || []).map(m => ({
                 name: m.name || 'Strike',
                 damage: typeof m.damage === 'number' ? m.damage : 20,
-                conditions: (m.conditions || []).map(c => ({ ...c })),
+                conditions: JSON.parse(JSON.stringify(m.conditions || [])),
                 media: (m.media || []).map(med => ({ ...med }))
             }));
             if (moves.length === 0) moves.push({ name: 'Punch', damage: 20, conditions: [] });
@@ -6295,7 +6295,8 @@
                 },
                 enemy: null,
                 playerTurn: true,
-                busy: false
+                busy: false,
+                pendingBattle: false
             };
 
             // Hide battle screen until a tile is picked
@@ -6954,23 +6955,96 @@
         // -- Victory / Rest Screen -------------------------------------------
         function _voidShowVictory() {
             const s = _voidState;
-            // Determine active tile count: boss battles get only 1, otherwise 5
-            const isBoss = (s.battleNum % 15 === 0 || s.battleNum % 25 === 0);
-            const activeCount = isBoss ? 1 : 5;
+            const nextBattle = s.battleNum + 1;
+            const nextIsBoss     = nextBattle % 25 === 0;
+            const nextIsMiniBoss = !nextIsBoss && nextBattle % 15 === 0;
+            const isMandatory = nextIsBoss || nextIsMiniBoss;
 
             // Update header
-            document.getElementById('vrestTitle').textContent =
-                `?? Battle ${s.battleNum} Complete!`;
-            document.getElementById('vrestSubheader').textContent =
-                `You defeated ${s.enemy.name}!`;
-            document.getElementById('vrestSubtitle').textContent =
-                isBoss ? 'A powerful foe falls � one reward awaits.' : 'Choose your fate � pick a tile';
+            document.getElementById('vrestTitle').textContent = `⚔️ Battle ${s.battleNum} Complete!`;
+            document.getElementById('vrestSubheader').textContent = `You defeated ${s.enemy.name}!`;
             document.getElementById('vrestSubtitle').classList.remove('picked');
             document.getElementById('vrestEffectMsg').textContent = '';
+            document.getElementById('vrestEffectMsg').style.color = '';
             document.getElementById('vrestContinueBtn').style.display = 'none';
 
-            // Build and render grid
-            _voidBuildPathMap(activeCount);
+            if (isMandatory) {
+                // Boss or mini-boss coming — mandatory fight, no choice
+                const color = nextIsBoss ? 'red-boss' : 'red-dark';
+                const msgText = nextIsBoss
+                    ? '🚨 ⚠️ WARNING WARNING — A boss is coming... you ready?'
+                    : '🔴 A powerful enemy approaches... brace yourself!';
+                const msgColor = nextIsBoss ? '#dc2626' : '#f87171';
+
+                document.getElementById('vrestSubtitle').textContent = nextIsBoss ? '💀 BOSS BATTLE' : '⭐ MINI-BOSS BATTLE';
+
+                // Build a simple mandatory tile (no path map)
+                const container = document.getElementById('vrestGrid');
+                container.innerHTML = '';
+
+                // Show a single large mandatory battle tile centered
+                const mandatoryNode = document.createElement('div');
+                mandatoryNode.style.cssText = `
+                    position:absolute;left:50%;top:50%;
+                    transform:translate(-50%,-50%);
+                    width:100px;height:100px;
+                    border-radius:12px;
+                    border:3px solid ${nextIsBoss ? '#f87171' : '#fb923c'};
+                    background:linear-gradient(135deg,${nextIsBoss ? '#1a0000,#7f1d1d' : '#431200,#b91c1c'});
+                    display:flex;align-items:center;justify-content:center;
+                    font-size:40px;
+                    box-shadow:0 0 30px ${nextIsBoss ? 'rgba(220,38,38,0.9)' : 'rgba(249,115,22,0.7)'};
+                    z-index:3;
+                    cursor:pointer;
+                `;
+                mandatoryNode.textContent = nextIsBoss ? '💀' : '⭐';
+                mandatoryNode.title = nextIsBoss ? 'Boss Battle' : 'Mini-Boss Battle';
+                mandatoryNode.addEventListener('click', () => {
+                    // Apply the red tile effect (sets pendingBattle=true) then show continue
+                    const effectEl = document.getElementById('vrestEffectMsg');
+                    effectEl.style.color = msgColor;
+                    effectEl.textContent = msgText;
+                    s.pendingBattle = true;
+                    if (nextIsBoss) {
+                        // Siren
+                        try {
+                            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                            const playBeep = (freq, start, dur) => {
+                                const osc = ctx.createOscillator();
+                                const gain = ctx.createGain();
+                                osc.connect(gain); gain.connect(ctx.destination);
+                                osc.frequency.value = freq;
+                                osc.type = 'sawtooth';
+                                gain.gain.setValueAtTime(0.18, ctx.currentTime + start);
+                                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
+                                osc.start(ctx.currentTime + start);
+                                osc.stop(ctx.currentTime + start + dur + 0.05);
+                            };
+                            for (let i = 0; i < 3; i++) { playBeep(880, i * 0.5, 0.22); playBeep(660, i * 0.5 + 0.25, 0.22); }
+                            setTimeout(() => ctx.close(), 2000);
+                        } catch(e) {}
+                        const overlay = document.getElementById('voidVictoryScreen');
+                        overlay.classList.add('vrest-siren-flash');
+                        setTimeout(() => overlay.classList.remove('vrest-siren-flash'), 3000);
+                    }
+                    mandatoryNode.style.pointerEvents = 'none';
+                    mandatoryNode.style.opacity = '0.7';
+                    document.getElementById('vrestContinueBtn').style.display = 'inline-block';
+                    document.getElementById('vrestSubtitle').classList.add('picked');
+                });
+                container.appendChild(mandatoryNode);
+
+                const mandatoryLabel = document.createElement('div');
+                mandatoryLabel.style.cssText = `position:absolute;left:50%;top:calc(50% + 60px);transform:translateX(-50%);font-size:12px;color:${nextIsBoss ? '#f87171' : '#fb923c'};font-weight:bold;letter-spacing:1px;z-index:3;white-space:nowrap;`;
+                mandatoryLabel.textContent = nextIsBoss ? 'TAP TO FACE THE BOSS' : 'TAP TO FACE THE MINI-BOSS';
+                container.appendChild(mandatoryLabel);
+
+                document.getElementById('vrestSubtitle').textContent = nextIsBoss ? '💀 A boss stands in your path!' : '⭐ A powerful foe awaits!';
+            } else {
+                // Normal battle after — show path map with 5 choices
+                document.getElementById('vrestSubtitle').textContent = 'Choose your fate — pick a tile';
+                _voidBuildPathMap(5, false);
+            }
 
             document.getElementById('voidVictoryScreen').style.display = 'flex';
         }
@@ -6985,15 +7059,17 @@
             let msg = '';
 
             if (color === 'red-light') {
-                // Dramatic text, then continue leads into normal battle (already queued as next battle)
-                msg = '?? Oh, new foes have appeared... get ready...';
+                s.pendingBattle = true;
+                msg = '⚔️ Oh, new foes have appeared... get ready...';
                 effectEl.style.color = '#fca5a5';
             }
             else if (color === 'red-dark') {
-                msg = '?? Looks like this enemy is stronger than the last... be on your guard...';
+                s.pendingBattle = true;
+                msg = '🔴 Looks like this enemy is stronger than the last... be on your guard...';
                 effectEl.style.color = '#f87171';
             }
             else if (color === 'red-boss') {
+                s.pendingBattle = true;
                 // Siren flash effect on overlay
                 effectEl.style.color = '#dc2626';
                 msg = '?? ?? WARNING WARNING � A boss is coming... you ready?';
@@ -7066,7 +7142,15 @@
 
         function voidNextBattle() {
             document.getElementById('voidVictoryScreen').style.display = 'none';
-            voidBeginNextBattle();
+            const s = _voidState;
+            if (s && s.pendingBattle) {
+                // Red tile was picked — fight!
+                s.pendingBattle = false;
+                voidBeginNextBattle();
+            } else {
+                // Non-battle tile (green, yellow, blue, gold) — show path map again for next choice
+                _voidShowVictory();
+            }
         }
 
         // -- Game Over screen ------------------------------------------------
