@@ -884,8 +884,10 @@
 
         #battleAnimationContainer video,
         #battleAnimationContainer img {
-            width: 100vw;
-            height: 100vh;
+            max-width: 100vw;
+            max-height: 100vh;
+            width: auto;
+            height: auto;
             object-fit: contain;
             border-radius: 0;
             border: none;
@@ -3852,17 +3854,18 @@
                 const overlay = document.getElementById('battleAnimationOverlay');
                 const container = document.getElementById('battleAnimationContainer');
                 if (!overlay || !container) { resolve(); return; }
+                
                 container.innerHTML = '';
                 overlay.style.display = 'flex';
                 overlay.onclick = e => e.stopPropagation();
 
-                // No media — short pacing delay
+                // No media — short delay
                 if (!media || !media.url) {
                     setTimeout(() => { overlay.style.display = 'none'; resolve(); }, 360);
                     return;
                 }
 
-                // Resolve idb: keys from IndexedDB
+                // Resolve idb: references
                 let url = media.url;
                 if (url.startsWith('idb:')) {
                     url = (await resolveMediaUrl(url)) || '';
@@ -3879,93 +3882,90 @@
                     resolve();
                 }
 
-                // Detect type using the first 200 chars of URL to avoid slow base64 checks
+                // Detect media type
                 const head = url.slice(0, 200).toLowerCase();
                 const isDataImage = url.startsWith('data:image/');
                 const isDataVideo = url.startsWith('data:video/');
+                
+                const isImage = !isDataVideo && (isDataImage || /\.(png|jpg|jpeg|gif|webp)(\?|#|$)/.test(head));
+                const isVideo = isDataVideo || (!isDataImage && (
+                    /\.(mp4|webm|ogg|mov)(\?|#|$)/.test(head) ||
+                    head.includes('youtube.com') || head.includes('youtu.be') ||
+                    head.includes('vimeo.com') || head.includes('cdn.discordapp.com') ||
+                    head.includes('media.discordapp.net') || head.includes('streamable.com') ||
+                    head.includes('gyazo.com') || url.startsWith('blob:')
+                ));
 
-                const isImage = !isDataVideo && (
-                    isDataImage ||
-                    /\.(png|jpg|jpeg|gif|webp)(\?|#|$)/.test(head)
-                );
-
-                const isVideo = isDataVideo || (
-                    !isDataImage && (
-                        /\.(mp4|webm|ogg|mov)(\?|#|$)/.test(head) ||
-                        head.includes('youtube.com') ||
-                        head.includes('youtu.be') ||
-                        head.includes('vimeo.com') ||
-                        head.includes('cdn.discordapp.com') ||
-                        head.includes('media.discordapp.net') ||
-                        head.includes('streamable.com') ||
-                        head.includes('gyazo.com') ||
-                        url.startsWith('blob:')
-                    )
-                );
-
+                // Image/GIF handler
                 if (isImage) {
                     const img = document.createElement('img');
+                    img.style.cssText = 'max-width:90vw;max-height:90vh;width:auto;height:auto;object-fit:contain;';
                     img.src = url;
                     img.addEventListener('contextmenu', e => e.preventDefault());
-                    img.onload = () => {
-                        const isGif = head.includes('.gif');
-                        setTimeout(finish, isGif ? 3000 : 2000);
-                    };
+                    
+                    const isGif = head.includes('.gif');
+                    const displayTime = isGif ? 4000 : 2500;
+                    
+                    img.onload = () => setTimeout(finish, displayTime);
                     img.onerror = () => finish();
                     container.appendChild(img);
-                    // Safety timeout — 8s
-                    setTimeout(() => { if (container.contains(img)) finish(); }, 8000);
+                    setTimeout(finish, displayTime + 5000); // safety timeout
                     return;
                 }
 
-                // Video (or unknown — try as video)
+                // Video handler - simple and reliable
                 const video = document.createElement('video');
-                video.style.cssText = 'width:100vw;height:100vh;object-fit:contain;';
+                video.style.cssText = 'max-width:90vw;max-height:90vh;width:auto;height:auto;object-fit:contain;';
                 video.src = url;
                 video.playsInline = true;
                 video.controls = false;
                 video.preload = 'auto';
-                video.muted = true;
-                video.autoplay = true;
+                video.muted = !media.hasAudio; // respect hasAudio from the start
+                video.loop = false;
                 video.addEventListener('contextmenu', e => e.preventDefault());
                 container.appendChild(video);
 
-                let finished = false;
-                function safeFinish() {
-                    if (finished) return;
-                    finished = true;
-                    finish();
-                }
+                let hasEnded = false;
+                
+                // When video ends naturally, close overlay
+                video.addEventListener('ended', () => {
+                    if (!hasEnded) {
+                        hasEnded = true;
+                        setTimeout(finish, 300); // tiny delay for smoother transition
+                    }
+                });
 
-                video.addEventListener('ended', safeFinish);
+                // If video errors, try as image
                 video.addEventListener('error', () => {
-                    // Try as image fallback
+                    if (hasEnded) return;
+                    hasEnded = true;
                     video.remove();
                     const img = document.createElement('img');
+                    img.style.cssText = 'max-width:90vw;max-height:90vh;width:auto;height:auto;object-fit:contain;';
                     img.src = url;
                     img.addEventListener('contextmenu', e => e.preventDefault());
-                    img.onload = () => setTimeout(safeFinish, 2000);
-                    img.onerror = () => safeFinish();
+                    img.onload = () => setTimeout(finish, 2500);
+                    img.onerror = () => finish();
                     container.appendChild(img);
-                    setTimeout(safeFinish, 8000);
                 });
 
-                // Try to play
-                video.play().then(() => {
-                    if (media.hasAudio) video.muted = false;
-                }).catch(() => {
-                    // Autoplay blocked — try muted
+                // Start playing
+                video.play().catch(() => {
+                    // If autoplay fails, try muted
                     video.muted = true;
-                    video.play().catch(() => safeFinish());
+                    video.play().catch(() => {
+                        // If still fails, just show it for a bit
+                        setTimeout(finish, 3000);
+                    });
                 });
 
-                // Hard timeout: 10s max — prevents game hanging on bad URLs
-                setTimeout(safeFinish, 10000);
-
-                // If video loads but is very short or has no duration, also finish
-                video.addEventListener('loadedmetadata', () => {
-                    if (video.duration && video.duration < 0.1) safeFinish();
-                });
+                // Safety timeout - 2 minutes absolute max for any video
+                setTimeout(() => {
+                    if (!hasEnded) {
+                        hasEnded = true;
+                        finish();
+                    }
+                }, 120000);
             });
         }
 
